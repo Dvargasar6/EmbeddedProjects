@@ -156,14 +156,6 @@ static void pwm_Init(void) {
 }
 
 
-
-/*
- * ------------++++++++++++++++++++++********************
- * ccccccccccccggggggHHHHHHHHHHHH7777777777777
- */
-
-
-
 /*
  * blinky_Init:
  * Funcion que configura el blinky de estado.
@@ -171,6 +163,7 @@ static void pwm_Init(void) {
  * TIM5 con interrupcion cada 500 ms:
  */
 static void blinky_Init(void) {
+
 	GPIO_InitTypeDef GPIO_Blinky = { 0 };
 
 	__HAL_RCC_GPIOH_CLK_ENABLE();
@@ -189,20 +182,34 @@ static void blinky_Init(void) {
 	htim5.Init.Period = 499;
 	htim5.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	htim5.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+
+	// Inicializa los registros base de TIM5:
 	HAL_TIM_Base_Init(&htim5);
 
+	// Prioridad de la interrupcion de TIM5:
 	HAL_NVIC_SetPriority(TIM5_IRQn, 5, 0);
+
+	// Habilita la interrupcion de TIM5 en el NVIC:
 	HAL_NVIC_EnableIRQ(TIM5_IRQn);
 
+	// Inicia el temporizador de TIM5:
 	HAL_TIM_Base_Start_IT(&htim5);
 }
 
-/* usart_Init: USART2 a 19200 8N1, Rx por interrupcion */
+/*
+ * 	usart_Init:
+ *	Funcion de configuracion del periferico USART2 a 19200 8N1
+ *	Define los pines Tx (PA2) y Rx (PA3).
+ */
 static void usart_Init(void) {
 	GPIO_InitTypeDef GPIO_Usart = { 0 };
 
 	__HAL_RCC_GPIOA_CLK_ENABLE();
 
+	/*
+	 *  Asigna los pines PA2 y PA3 
+	 *  a AF7 para enrutar a USART2.
+	 */
 	GPIO_Usart.Pin = GPIO_PIN_2 | GPIO_PIN_3;
 	GPIO_Usart.Mode = GPIO_MODE_AF_PP;
 	GPIO_Usart.Pull = GPIO_PULLUP;
@@ -212,6 +219,11 @@ static void usart_Init(void) {
 
 	__HAL_RCC_USART2_CLK_ENABLE();
 
+	/*
+	 *  Configuracion de registros para USART2.
+	 *  Se configura como UART para comunicacion asincrona.
+	 *  Se habilitan ambos recepcion y transmision.
+	 */
 	huart2.Instance = USART2;
 	huart2.Init.BaudRate = 19200;
 	huart2.Init.WordLength = UART_WORDLENGTH_8B;
@@ -225,14 +237,30 @@ static void usart_Init(void) {
 	HAL_NVIC_SetPriority(USART2_IRQn, 6, 0);
 	HAL_NVIC_EnableIRQ(USART2_IRQn);
 
+	/*
+	 *  Recepcion asincrona de 1 byte en rx_data.
+	 *  Esta funcion llama automaticamente la interrupcion al 
+	    al detectar un caracter.	
+	 */
+
 	HAL_UART_Receive_IT(&huart2, (uint8_t*) &rx_data, 1);
 
+	// Mensaje de diagnostico e instruccion:
 	char *msg =
-			"STM32 listo. r/R: rojo, a: apaga, b: blanco. Encoder: verde. Pot: azul.\r\n";
+			"STM32 listo. +/-: Regula LED rojo, a: apaga LED, b: Blanco. Encoder: verde. Pot: azul.\r\n";
+
+	/*
+	 * 	Transmision del mensaje de diagnostico (msg).
+	 */		
 	HAL_UART_Transmit(&huart2, (uint8_t*) msg, strlen(msg), 100);
 }
 
 /* encoder_Init: TIM2 en modo encoder TI12 sobre PA0/PA1, sin interrupciones */
+/*
+ *  encoder_Init:
+ *  Funcion de configuracion de TIM2 en modo encoder.
+ *  
+ */
 static void encoder_Init(void) {
 	GPIO_InitTypeDef GPIO_Enc = { 0 };
 
@@ -255,38 +283,36 @@ static void encoder_Init(void) {
 	htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 
 	TIM_Encoder_InitTypeDef sConfig = { 0 };
-	sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
+	sConfig.EncoderMode = TIM_ENCODERMODE_TI12;  // Activa el modo encoder en TI1 y TI2.
 	sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
-	sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;
+	sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;  // Enruta TI1 a PA0.
 	sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-	sConfig.IC1Filter = 10;
+	sConfig.IC1Filter = 10;                           // Filtro para evitar debounce
 	sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
-	sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;
+	sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;  // Enruta TI2 a PA1.
 	sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
-	sConfig.IC2Filter = 10;
+	sConfig.IC2Filter = 10;                           // Filtro para evitar debounce
 	HAL_TIM_Encoder_Init(&htim2, &sConfig);
 
 	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
 
+
+	/*
+	 *	Se obtiene la cantidad de pulsos contabilizados;
+	    En el momento de inicializar el MCU su valor es 0.
+	 */
 	enc_pos_prev = (int32_t) __HAL_TIM_GET_COUNTER(&htim2);
 }
 
-/*
- * trgo_tim_Init
- * Configura TIM4 con su canal 4 en output compare timing mode, generando un
- * evento CC4 cada 50 ms. Ese evento dispara el ADC por hardware (sin tocar
- * NVIC, sin interrupcion del timer).
- *
- * Originalmente queriamos usar TRGO del update event, pero el ADC del F411
- * no acepta T4_TRGO como fuente. Acepta T4_CC4 que produce el mismo resultado.
- *
- * tick = 16 MHz / (15999+1) = 1000 Hz -> 1 ms por tick
- * periodo = (49+1) * 1 ms = 50 ms -> evento CC4 cada 50 ms
- */
+
+ /*
+  * trgo_tim_Init:
+  * Funcion de configuracion de TIM4 que servirá como temporizador del ADC.
+  * Una senal TRGO permite que un periferico dispare una accion en otro.
+  */
 static void trgo_tim_Init(void) {
 	__HAL_RCC_TIM4_CLK_ENABLE();
 
-	/* Base de tiempo */
 	htim4.Instance = TIM4;
 	htim4.Init.Prescaler = 15999;
 	htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
@@ -294,34 +320,24 @@ static void trgo_tim_Init(void) {
 	htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
 	htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
 
-	/* Inicializa el timer en modo Output Compare (no es PWM, es OC).
-	 Esta funcion configura los registros base; los canales se configuran
-	 individualmente abajo. */
 	HAL_TIM_OC_Init(&htim4);
 
-	/* Configurar canal 4 en modo TIMING (output frozen).
-	 OCMode = TIM_OCMODE_TIMING significa que el comparador funciona y
-	 genera el evento CC4 cada vez que CNT iguala CCR4, pero el pin
-	 fisico de salida (PB9 para TIM4_CH4) no se modifica. Es justo lo
-	 que queremos: el evento interno fluye al ADC pero no consumimos
-	 ni configuramos ningun pin.
-
-	 Pulse = 25: valor de CCR4. Como CNT cuenta de 0 a 49 (50 ticks),
-	 cualquier valor entre 0 y 49 produce un evento CC4 por periodo.
-	 Elegimos 25 (mitad del periodo); el valor exacto no importa porque
-	 solo nos interesa la frecuencia de los eventos, no su fase. */
 	TIM_OC_InitTypeDef sConfigOC = { 0 };
 	//sConfigOC.OCMode = TIM_OCMODE_TIMING;
-	sConfigOC.OCMode = TIM_OCMODE_PWM1;   // antes: TIM_OCMODE_TIMING
+	sConfigOC.OCMode = TIM_OCMODE_PWM1;
 	sConfigOC.Pulse = 25;
 	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
 	sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
 	HAL_TIM_OC_ConfigChannel(&htim4, &sConfigOC, TIM_CHANNEL_4);
 
-	/* Arranca el canal 4 en output compare sin interrupcion.
-	 La funcion habilita la generacion del evento CC4 pero NO toca el NVIC. */
-	HAL_TIM_OC_Start(&htim4, TIM_CHANNEL_4);
+	/*
+	 * Inicializacion del timer.
+	 * Como la funcion no tiene "IT" no hay interrupciones.
+	 */
+	HAL_TIM_OC_Start(&htim4, TIM_CHANNEL_4);  
 }
+
+
 /*
  * adc_Init
  * Configura PC2 en modo analogico, ADC1 en resolucion 12 bits, disparado por
@@ -334,71 +350,61 @@ static void adc_Init(void) {
 	/* Habilitar reloj de GPIOC (no se habia usado antes) */
 	__HAL_RCC_GPIOC_CLK_ENABLE();
 
-	/* PC2 en modo analogico: desconecta los buffers digitales, deja el pin
-	 conectado al multiplexor interno del ADC. No tiene AF, no tiene pull. */
+
+	// PC2 en modo analogico.
 	GPIO_ADC.Pin = GPIO_PIN_2;
 	GPIO_ADC.Mode = GPIO_MODE_ANALOG;
 	GPIO_ADC.Pull = GPIO_NOPULL;
 	HAL_GPIO_Init(GPIOC, &GPIO_ADC);
 
-	/* Habilitar reloj del ADC1 (en bus APB2) */
 	__HAL_RCC_ADC1_CLK_ENABLE();
 
-	/* Configuracion del ADC.
-	 ClockPrescaler DIV2: ADC corre a APB2/2 = 8 MHz, bien dentro del rango
-	 maximo de 36 MHz que soporta el ADC del F411.
-	 Resolution 12B: 12 bits, requerido por la tarea.
-	 ScanConvMode DISABLE: solo convertimos un canal, no necesitamos scan.
-	 ContinuousConvMode DISABLE: no queremos que el ADC convierta
-	 continuamente; cada conversion la dispara TRGO.
-	 ExternalTrigConv T4_TRGO: la fuente del disparo es TRGO de TIM4.
-	 ExternalTrigConvEdge RISING: dispara en flanco de subida del TRGO.
-	 EOCSelection EOC_SINGLE_CONV: el flag EOC se levanta al final de cada
-	 conversion (lo necesitamos para que la HAL llame al callback).
-	 DMAContinuousRequests DISABLE: no usamos DMA en esta tarea. */
+	/* 
+	 *  Configuracion del ADC:
+	 */
 	hadc1.Instance = ADC1;
-	hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
-	hadc1.Init.Resolution = ADC_RESOLUTION_12B;
+	hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;  // 8 MHz.
+	hadc1.Init.Resolution = ADC_RESOLUTION_12B;   // 12 bits de resolucion.
 	hadc1.Init.ScanConvMode = DISABLE;
-	hadc1.Init.ContinuousConvMode = DISABLE;
+	hadc1.Init.ContinuousConvMode = DISABLE;      // Desactiva conversion continua.
 	hadc1.Init.DiscontinuousConvMode = DISABLE;
-	//hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T4_TRGO;
-	hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T4_CC4; // antes: T4_TRGO
+	//hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T4_TRGO; 
+	//  TIM4 no se puede enrutar a TRGO, se usa CC4.
+	hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T4_CC4; // La conversion la dispara el CC4 de TIM4.
 	hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
 	hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
 	hadc1.Init.NbrOfConversion = 1;
-	hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+	hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;  // Se levanta la flag para la interrupcion.  
 	hadc1.Init.DMAContinuousRequests = DISABLE;
 	HAL_ADC_Init(&hadc1);
 
-	/* Configurar el canal que se va a convertir.
-	 PC2 corresponde a ADC1_IN12. SamplingTime 56 ciclos es buen balance
-	 entre velocidad y precision para una fuente como un potenciometro. */
+	/* 
+	 *  Configuracion del pin PC2 en el canal ADC1_IN12.
+	 */
 	ADC_ChannelConfTypeDef sConfig = { 0 };
 	sConfig.Channel = ADC_CHANNEL_12;       // PC2 = canal 12
-	sConfig.Rank = 1;                       // primer (y unico) canal del scan
+	sConfig.Rank = 1;                       
 	sConfig.SamplingTime = ADC_SAMPLETIME_56CYCLES;
 	HAL_ADC_ConfigChannel(&hadc1, &sConfig);
 
-	/* Habilitar interrupcion EOC del ADC en el NVIC.
-	 El ADC comparte una sola linea de interrupcion para todas sus fuentes. */
-	HAL_NVIC_SetPriority(ADC_IRQn, 7, 0);   // prioridad mas baja, no critica
+	// Habilitar la interrupcion en el NVIC:
+	HAL_NVIC_SetPriority(ADC_IRQn, 7, 0);
 	HAL_NVIC_EnableIRQ(ADC_IRQn);
 
-	/* Arrancar el ADC en modo interrupcion. NO arranca conversiones todavia:
-	 solo arma el ADC para que reaccione cuando llegue el TRGO. La primera
-	 conversion ocurre cuando TIM4 hace su primer update. */
+	/* 
+	 *  Arrancar el ADC en modo interrupcion. 
+	 *  No arranca conversiones todavia solo arma el ADC 
+	    para que reaccione cuando llegue el TRGO. La primera
+	    conversion ocurre cuando TIM4 hace su primer update. 
+	 */
 	HAL_ADC_Start_IT(&hadc1);
 }
 
+
 /*
- * HAL_ADC_ConvCpltCallback
- * Llamado automaticamente cuando termina una conversion. Recupera el resultado
- * de 12 bits y levanta una bandera para que el bucle principal lo procese.
- * Mantener la ISR corta es buena practica.
- *
- * IMPORTANTE: el nombre debe ser EXACTAMENTE este. Tu codigo original tenia
- * "HA_ADC_..." (sin la L), por eso nunca se ejecutaba.
+ *  ISR del ADC:
+ *  Obtiene el resultado de la conversion en un valor entre 0 y 4095.
+ *  Lo guarda en la variable adc_raw.
  */
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 	if (hadc->Instance == ADC1) {
@@ -407,7 +413,9 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc) {
 	}
 }
 
-/* HAL_UART_RxCpltCallback */
+/*
+ *  ISR de recepcion: 
+ */
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart->Instance == USART2) {
 		rx_flag = 1;
@@ -415,14 +423,21 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	}
 }
 
-/* HAL_TIM_PeriodElapsedCallback: blinky en PH1 */
+/*
+ * ISR del blinky:
+ */
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	if (htim->Instance == TIM5) {
 		HAL_GPIO_TogglePin(GPIOH, GPIO_PIN_1);
 	}
 }
 
-/* update_green: igual que antes */
+
+/* 
+ *  update_green: 
+ *  Funcion para actualizar el valor 
+    del duty cycle del LED verde.
+ */
 static void update_green(int16_t delta) {
 	int32_t nuevo = (int32_t) duty_g + delta;
 	if (nuevo > 1000)
@@ -437,7 +452,12 @@ static void update_green(int16_t delta) {
 	HAL_UART_Transmit(&huart2, (uint8_t*) msg, strlen(msg), 100);
 }
 
-/* process_encoder: igual que antes */
+/* 
+ *  process_encoder: 
+ *  Funcion para detectar los flancos del encoder
+    y ajustar el duty cycle del LED verde. 
+ */
+
 static void process_encoder(void) {
 	int32_t enc_pos_actual = (int32_t) __HAL_TIM_GET_COUNTER(&htim2);
 	int32_t delta = enc_pos_actual - enc_pos_prev;
@@ -452,28 +472,28 @@ static void process_encoder(void) {
 }
 
 /*
- * process_adc
- * Toma el ultimo valor convertido del ADC y lo escala al rango del duty
- * del PWM. Aplica al canal azul (TIM3_CH4, PB1). Solo reporta por USART
- * cuando el duty cambia, para no inundar la terminal con valores casi
- * iguales por ruido del ADC.
+ *  process_adc:
+ *  Funcion que procesa el ADC
+ *  para controlar el LED azul.
  */
+ 
 static void process_adc(void) {
-	/* Conversion de 0..4095 a 0..1000 con divisor entero.
-	 4095 / 4 = 1023, cap en 1000. La perdida de resolucion es minima
-	 y simplifica el calculo (no multiplicacion ni division costosa). */
+	
+	// Conversion de 0..4095 a 0..1023
 	uint16_t nuevo_duty_b = adc_raw / 4;
 	if (nuevo_duty_b > 1000)
 		nuevo_duty_b = 1000;
 
-	/* Solo actualizar y reportar si hubo cambio significativo.
-	 El ADC sin filtrado tiene un par de bits de ruido, asi que pequenos
-	 saltos son normales y no queremos enviar mensajes por cada uno.
-	 Histeresis de +/- 5 unidades evita el spam. */
+	// Se calcula la diferencia con el valor anterior
 	static uint16_t last_reported = 0;
 	int16_t diferencia = (int16_t) nuevo_duty_b - (int16_t) last_reported;
 	if (diferencia < 0)
 		diferencia = -diferencia;
+
+	/*
+	 * Si el cambio es muy pequeno no se transmite
+	 * un mensaje de reporte por UART.
+	 */
 
 	if (diferencia >= 5) {
 		duty_b = nuevo_duty_b;
@@ -484,8 +504,6 @@ static void process_adc(void) {
 		HAL_UART_Transmit(&huart2, (uint8_t*) msg, strlen(msg), 100);
 		last_reported = nuevo_duty_b;
 	} else {
-		/* Aunque no reportemos, si actualizamos el duty para que el LED
-		 responda suavemente. Esto sigue siendo cada 50 ms, no es spam. */
 		duty_b = nuevo_duty_b;
 		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_4, duty_b);
 	}
@@ -493,19 +511,23 @@ static void process_adc(void) {
 	adc_flag = 0;
 }
 
-/* process_rx: igual que antes */
+/* 
+ *  process_rx: 
+ *  Funcion para controlar el LED rojo 
+    mediante comunicacion serial. 
+ */
 static void process_rx(void) {
 	char msg[48];
 
 	switch (rx_data) {
-	case 'r':
+	case '+':
 		duty_r = (duty_r + 50 > 1000) ? 1000 : duty_r + 50;
 		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, duty_r);
 		snprintf(msg, sizeof(msg), "Rojo sube a %u\r\n", duty_r);
 		HAL_UART_Transmit(&huart2, (uint8_t*) msg, strlen(msg), 100);
 		break;
 
-	case 'R':
+	case '-':
 		duty_r = (duty_r < 50) ? 0 : duty_r - 50;
 		__HAL_TIM_SET_COMPARE(&htim3, TIM_CHANNEL_1, duty_r);
 		snprintf(msg, sizeof(msg), "Rojo baja a %u\r\n", duty_r);
@@ -539,55 +561,24 @@ static void process_rx(void) {
 
 int main(void) {
 
-	HAL_Init();
-	clock_Init();
+	
+	HAL_Init();   // Inicializacion de las librerias HAL
+  	clock_Init();
 	pwm_Init();
 	blinky_Init();
 	usart_Init();
 	encoder_Init();
-	trgo_tim_Init();   // TIM4 generando TRGO cada 50 ms
-	adc_Init();        // ADC armado, espera el TRGO
+	trgo_tim_Init(); 
+	adc_Init();   
 
-	/* DIAGNOSTICO TEMPORAL EXTENDIDO */
-	HAL_Delay(100);
 
-	HAL_ADC_Stop_IT(&hadc1);
-
-	/* Verificar estado real del ADC antes de intentar conversion */
-	char dbg[80];
-	snprintf(dbg, sizeof(dbg), "ADC CR2=0x%08lX SR=0x%08lX\r\n",
-			(unsigned long) hadc1.Instance->CR2,
-			(unsigned long) hadc1.Instance->SR);
-	HAL_UART_Transmit(&huart2, (uint8_t*) dbg, strlen(dbg), 100);
-
-	/* Forzar el ADC encendido (bit ADON) si la HAL lo apago al detener */
-	hadc1.Instance->CR2 |= ADC_CR2_ADON;
-	HAL_Delay(1);  // breve estabilizacion del ADC
-
-	/* Limpiar el flag EOC y disparar conversion por software */
-	hadc1.Instance->SR &= ~ADC_SR_EOC;
-	hadc1.Instance->CR2 |= ADC_CR2_SWSTART;
-
-	uint32_t timeout = HAL_GetTick() + 100;
-	while (!(hadc1.Instance->SR & ADC_SR_EOC) && HAL_GetTick() < timeout) {
-	}
-
-	if (hadc1.Instance->SR & ADC_SR_EOC) {
-		uint16_t valor = (uint16_t) (hadc1.Instance->DR & 0x0FFF);
-		snprintf(dbg, sizeof(dbg), "Diag ADC OK: %u\r\n", valor);
-	} else {
-		snprintf(dbg, sizeof(dbg), "Diag TIMEOUT. CR2=0x%08lX SR=0x%08lX\r\n",
-				(unsigned long) hadc1.Instance->CR2,
-				(unsigned long) hadc1.Instance->SR);
-	}
-	HAL_UART_Transmit(&huart2, (uint8_t*) dbg, strlen(dbg), 100);
-
-	HAL_ADC_Start_IT(&hadc1);
-	/* Bucle principal: tres tareas se atienden por polling de banderas y
-	 lectura directa de hardware. Todo lo critico en timing se hace por
-	 interrupcion o por hardware puro (TRGO -> ADC). */
+	/*
+	 *  Bucle principal:
+	 *  Revisa si los dos sistemas que utilizan interrupciones
+	 *  tienen su bandera levantada (Serial, ADC).
+	 *  Revisa si el encoder registro algun cambio.
+	 */
 	while (1) {
-
 
 		if (rx_flag)
 			process_rx();
