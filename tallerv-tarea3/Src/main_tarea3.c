@@ -1,19 +1,70 @@
-/*
- * main_tarea3.c
+/**
+ * @file    main_tarea3.c
+ * @author  Daniel Felipe Vargas Arias
+ * @date    9 de julio de 2026
+ * @brief   Código fuente principal para la Tarea #3 (ADC, DAC/PWM, USART, Encoder).
  *
- * Task 3 - Taller V
- * PWM RGB + Blinky + USART2 + Encoder TIM2 + ADC disparado por TRGO de TIM4
- * Author: daniel68
+ * @details
+ * Asignatura: Taller V (2.0) - 1er Semestre 2026.
+ * Profesor: Nerio Andres Montoya Giraldo, PhD.
+ * Plataforma: Microcontrolador STM32F411RE.
+ *
+ * Mapeo de Pines y Periféricos (Hardware):
+ * - USART2 (Comandos) : PA2 (TX) / PA3 (RX) [Típico enlace USB-Serial Nucleo]
+ * - TIM2 (Encoder)    : PA0 (TIM2_CH1 / TI1) y PA1 (TIM2_CH2 / TI2) en AF1.
+ * - TIM3 (LED RGB)    : CH1 (Rojo), CH2 (Verde), CH4 (Azul).
+ * - TIM4 (TRGO/Base)  : PB9 (TIM4_CH4) configurado en evento interno (sin salida física).
+ * - ADC1 (Potenciómetro): PC2 (Canal analógico 12 / ADC1_IN12).
+ *
+ * Descripción general de la arquitectura:
+ * El sistema implementa una máquina de estados finitos guiada por eventos
+ * para controlar los canales independientes de un LED RGB mediante
+ * tres mecanismos de entrada distintos:
+ *
+ * 1. USART2: Recepción asíncrona de comandos por interrupción a 19200 baudios. Modifica
+ *    el ancho de pulso del canal rojo.
+ * 2. Encoder (TIM2): Interfaz de decodificación en cuadratura por hardware esclavo, sin
+ *    uso de interrupciones de software. Modifica el ancho de pulso del canal verde.
+ * 3. ADC1 (12 bits): Muestreo analógico disparado por hardware mediante la coincidencia
+ *    del canal 4 (CC4) del TIM4 operando cada 50 ms. La lectura del potenciómetro modifica
+ *    el canal azul procesado en el callback de fin de conversión (EOC).
+ *
+ * Se incluye adicionalmente un indicador visual de estado (Blinky) gestionado por el
+ * desbordamiento periódico del TIM5. Toda la configuración de periféricos se realiza
+ * mediante la biblioteca de abstracción de hardware (HAL) de STMicroelectronics.
+ *
+ * Los comandos de control para comunicacion serial son:
+ * +/-: Aumenta y disminuye la intensidad del LED rojo.
+ * a: Apaga completamente los LEDs rojo y verde.
+ * b: Enciende completamente los LEDs rojo y verde.
+ *
+ * El LED azul conectado al canal del ADC no se puede controlar mediante serial.
+ * Iniciar el control serial a 19200 baudios y oprimir reset.
  */
+
 
 #include "stm32f4xx_hal.h"
 #include <string.h>
 #include <stdio.h>
 
+/*
+ * fsm_state_t:
+ * Enumeracion de estados.
+ */
+typedef enum {
+	ST_IDLE = 0,       // reposo, muestreando fuentes de eventos
+	ST_PROC_SERIAL,    // procesando byte recibido por USART
+	ST_PROC_ADC,       // procesando resultado del ADC
+	ST_PROC_ENCODER    // procesando movimiento del encoder
+} fsm_state_t;
+
+/* Estado actual de la FSM. */
+static fsm_state_t fsm_state = ST_IDLE;
+
 /* Manejadores globales */
 TIM_HandleTypeDef htim2 = { 0 };    // Encoder (32 bits)
 TIM_HandleTypeDef htim3 = { 0 };    // PWM RGB
-TIM_HandleTypeDef htim4 = { 0 };    // TRGO (Trigger Output) para disparar ADC cada 50 ms
+TIM_HandleTypeDef htim4 = { 0 }; // TRGO (Trigger Output) para disparar ADC cada 50 ms
 TIM_HandleTypeDef htim5 = { 0 };    // Blinky
 UART_HandleTypeDef huart2 = { 0 };  // USART2
 ADC_HandleTypeDef hadc1 = { 0 };    // ADC1 sobre PC2 (canal 12)
@@ -89,7 +140,6 @@ static void clock_Init(void) {
 	HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_0);
 }
 
-
 /*
  * pwm_Init:
  * Funcion de configuracion de los tres canales PWM.
@@ -138,7 +188,7 @@ static void pwm_Init(void) {
 	/*
 	 * Configuracion de los canales OC (Output Compare) para PWM:
 	 */
-	TIM_OC_InitTypeDef sConfigOC = {0};
+	TIM_OC_InitTypeDef sConfigOC = { 0 };
 	sConfigOC.OCMode = TIM_OCMODE_PWM1;
 	sConfigOC.Pulse = 0;
 	sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
@@ -154,7 +204,6 @@ static void pwm_Init(void) {
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_2);
 	HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
 }
-
 
 /*
  * blinky_Init:
@@ -240,7 +289,7 @@ static void usart_Init(void) {
 	/*
 	 *  Recepcion asincrona de 1 byte en rx_data.
 	 *  Esta funcion llama automaticamente la interrupcion al 
-	    al detectar un caracter.	
+	 al detectar un caracter.
 	 */
 
 	HAL_UART_Receive_IT(&huart2, (uint8_t*) &rx_data, 1);
@@ -251,7 +300,7 @@ static void usart_Init(void) {
 
 	/*
 	 * 	Transmision del mensaje de diagnostico (msg).
-	 */		
+	 */
 	HAL_UART_Transmit(&huart2, (uint8_t*) msg, strlen(msg), 100);
 }
 
@@ -283,33 +332,31 @@ static void encoder_Init(void) {
 	htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
 
 	TIM_Encoder_InitTypeDef sConfig = { 0 };
-	sConfig.EncoderMode = TIM_ENCODERMODE_TI12;  // Activa el modo encoder en TI1 y TI2.
+	sConfig.EncoderMode = TIM_ENCODERMODE_TI12; // Activa el modo encoder en TI1 y TI2.
 	sConfig.IC1Polarity = TIM_ICPOLARITY_RISING;
 	sConfig.IC1Selection = TIM_ICSELECTION_DIRECTTI;  // Enruta TI1 a PA0.
 	sConfig.IC1Prescaler = TIM_ICPSC_DIV1;
-	sConfig.IC1Filter = 10;                           // Filtro para evitar debounce
+	sConfig.IC1Filter = 10;                       // Filtro para evitar debounce
 	sConfig.IC2Polarity = TIM_ICPOLARITY_RISING;
 	sConfig.IC2Selection = TIM_ICSELECTION_DIRECTTI;  // Enruta TI2 a PA1.
 	sConfig.IC2Prescaler = TIM_ICPSC_DIV1;
-	sConfig.IC2Filter = 10;                           // Filtro para evitar debounce
+	sConfig.IC2Filter = 10;                       // Filtro para evitar debounce
 	HAL_TIM_Encoder_Init(&htim2, &sConfig);
 
 	HAL_TIM_Encoder_Start(&htim2, TIM_CHANNEL_ALL);
 
-
 	/*
 	 *	Se obtiene la cantidad de pulsos contabilizados;
-	    En el momento de inicializar el MCU su valor es 0.
+	 En el momento de inicializar el MCU su valor es 0.
 	 */
 	enc_pos_prev = (int32_t) __HAL_TIM_GET_COUNTER(&htim2);
 }
 
-
- /*
-  * trgo_tim_Init:
-  * Funcion de configuracion de TIM4 que servirá como temporizador del ADC.
-  * Una senal TRGO permite que un periferico dispare una accion en otro.
-  */
+/*
+ * trgo_tim_Init:
+ * Funcion de configuracion de TIM4 que servirá como temporizador del ADC.
+ * Una senal TRGO permite que un periferico dispare una accion en otro.
+ */
 static void trgo_tim_Init(void) {
 	__HAL_RCC_TIM4_CLK_ENABLE();
 
@@ -334,9 +381,8 @@ static void trgo_tim_Init(void) {
 	 * Inicializacion del timer.
 	 * Como la funcion no tiene "IT" no hay interrupciones.
 	 */
-	HAL_TIM_OC_Start(&htim4, TIM_CHANNEL_4);  
+	HAL_TIM_OC_Start(&htim4, TIM_CHANNEL_4);
 }
-
 
 /*
  * adc_Init
@@ -349,7 +395,6 @@ static void adc_Init(void) {
 
 	/* Habilitar reloj de GPIOC (no se habia usado antes) */
 	__HAL_RCC_GPIOC_CLK_ENABLE();
-
 
 	// PC2 en modo analogico.
 	GPIO_ADC.Pin = GPIO_PIN_2;
@@ -366,7 +411,7 @@ static void adc_Init(void) {
 	hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;  // 8 MHz.
 	hadc1.Init.Resolution = ADC_RESOLUTION_12B;   // 12 bits de resolucion.
 	hadc1.Init.ScanConvMode = DISABLE;
-	hadc1.Init.ContinuousConvMode = DISABLE;      // Desactiva conversion continua.
+	hadc1.Init.ContinuousConvMode = DISABLE;   // Desactiva conversion continua.
 	hadc1.Init.DiscontinuousConvMode = DISABLE;
 	//hadc1.Init.ExternalTrigConv = ADC_EXTERNALTRIGCONV_T4_TRGO; 
 	//  TIM4 no se puede enrutar a TRGO, se usa CC4.
@@ -374,7 +419,7 @@ static void adc_Init(void) {
 	hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_RISING;
 	hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
 	hadc1.Init.NbrOfConversion = 1;
-	hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;  // Se levanta la flag para la interrupcion.  
+	hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV; // Se levanta la flag para la interrupcion.
 	hadc1.Init.DMAContinuousRequests = DISABLE;
 	HAL_ADC_Init(&hadc1);
 
@@ -383,7 +428,7 @@ static void adc_Init(void) {
 	 */
 	ADC_ChannelConfTypeDef sConfig = { 0 };
 	sConfig.Channel = ADC_CHANNEL_12;       // PC2 = canal 12
-	sConfig.Rank = 1;                       
+	sConfig.Rank = 1;
 	sConfig.SamplingTime = ADC_SAMPLETIME_56CYCLES;
 	HAL_ADC_ConfigChannel(&hadc1, &sConfig);
 
@@ -394,12 +439,11 @@ static void adc_Init(void) {
 	/* 
 	 *  Arrancar el ADC en modo interrupcion. 
 	 *  No arranca conversiones todavia solo arma el ADC 
-	    para que reaccione cuando llegue el TRGO. La primera
-	    conversion ocurre cuando TIM4 hace su primer update. 
+	 para que reaccione cuando llegue el TRGO. La primera
+	 conversion ocurre cuando TIM4 hace su primer update.
 	 */
 	HAL_ADC_Start_IT(&hadc1);
 }
-
 
 /*
  *  ISR del ADC:
@@ -432,11 +476,10 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 	}
 }
 
-
 /* 
  *  update_green: 
  *  Funcion para actualizar el valor 
-    del duty cycle del LED verde.
+ del duty cycle del LED verde.
  */
 static void update_green(int16_t delta) {
 	int32_t nuevo = (int32_t) duty_g + delta;
@@ -455,7 +498,7 @@ static void update_green(int16_t delta) {
 /* 
  *  process_encoder: 
  *  Funcion para detectar los flancos del encoder
-    y ajustar el duty cycle del LED verde. 
+ y ajustar el duty cycle del LED verde.
  */
 
 static void process_encoder(void) {
@@ -476,9 +519,9 @@ static void process_encoder(void) {
  *  Funcion que procesa el ADC
  *  para controlar el LED azul.
  */
- 
+
 static void process_adc(void) {
-	
+
 	// Conversion de 0..4095 a 0..1023
 	uint16_t nuevo_duty_b = adc_raw / 4;
 	if (nuevo_duty_b > 1000)
@@ -514,7 +557,7 @@ static void process_adc(void) {
 /* 
  *  process_rx: 
  *  Funcion para controlar el LED rojo 
-    mediante comunicacion serial. 
+ mediante comunicacion serial.
  */
 static void process_rx(void) {
 	char msg[48];
@@ -561,16 +604,14 @@ static void process_rx(void) {
 
 int main(void) {
 
-	
 	HAL_Init();   // Inicializacion de las librerias HAL
-  	clock_Init();
+	clock_Init();
 	pwm_Init();
 	blinky_Init();
 	usart_Init();
 	encoder_Init();
-	trgo_tim_Init(); 
-	adc_Init();   
-
+	trgo_tim_Init();
+	adc_Init();
 
 	/*
 	 *  Bucle principal:
@@ -578,12 +619,63 @@ int main(void) {
 	 *  tienen su bandera levantada (Serial, ADC).
 	 *  Revisa si el encoder registro algun cambio.
 	 */
+
+	/*
+	 * Bucle principal implementado como maquina de estados finitos.
+	 *
+	 * En ST_IDLE se verifican las fuentes de eventos en orden de prioridad:
+	 *   1. Serial (comandos explicitos del usuario, respuesta inmediata).
+	 *   2. ADC (muestreo periodico programado por hardware).
+	 *   3. Encoder (verificacion pasiva del contador).
+	 * La primera fuente activa determina el proximo estado. Solo se atiende
+	 * una fuente por ciclo de la FSM, garantizando que todas eventualmente
+	 * reciben atencion equitativa sin bloqueos.
+	 *
+	 * En los estados de procesamiento se ejecuta la accion asociada y se
+	 * retorna a ST_IDLE. Ninguna funcion de procesamiento debe hacer polling
+	 * bloqueante ni esperas largas, para no comprometer la respuesta de las
+	 * demas fuentes.
+	 */
 	while (1) {
 
-		if (rx_flag)
+		switch (fsm_state) {
+
+		case ST_IDLE:
+			/* Prioridad 1: comando serial */
+			if (rx_flag) {
+				fsm_state = ST_PROC_SERIAL;
+			}
+			/* Prioridad 2: conversion ADC */
+			else if (adc_flag) {
+				fsm_state = ST_PROC_ADC;
+			}
+			/* Prioridad 3: cambio en el contador del encoder. */
+			else {
+				int32_t enc_actual = (int32_t) __HAL_TIM_GET_COUNTER(&htim2);
+				if (enc_actual != enc_pos_prev) {
+					fsm_state = ST_PROC_ENCODER;
+				}
+			}
+			break;
+
+		case ST_PROC_SERIAL:
 			process_rx();
-		if (adc_flag)
+			fsm_state = ST_IDLE;
+			break;
+
+		case ST_PROC_ADC:
 			process_adc();
-		process_encoder();
+			fsm_state = ST_IDLE;
+			break;
+
+		case ST_PROC_ENCODER:
+			process_encoder();
+			fsm_state = ST_IDLE;
+			break;
+
+		default:
+			fsm_state = ST_IDLE;
+			break;
+		}
 	}
 }
