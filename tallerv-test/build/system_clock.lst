@@ -1,0 +1,924 @@
+ARM GAS  /tmp/cc6RsDJF.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 1
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"system_clock.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.file 1 "Core/Src/system_clock.c"
+  20              		.section	.text.system_clock_mco_set,"ax",%progbits
+  21              		.align	1
+  22              		.global	system_clock_mco_set
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	system_clock_mco_set:
+  28              	.LVL0:
+  29              	.LFB269:
+   1:Core/Src/system_clock.c **** /*
+   2:Core/Src/system_clock.c ****  * system_clock.c
+   3:Core/Src/system_clock.c ****  * Configuracion del arbol de relojes del STM32F411RE y de la salida MCO1.
+   4:Core/Src/system_clock.c ****  *
+   5:Core/Src/system_clock.c ****  * Cadena de reloj implementada:
+   6:Core/Src/system_clock.c ****  *
+   7:Core/Src/system_clock.c ****  *   HSI (16 MHz) --> /PLLM=8 --> 2 MHz --> xPLLN=100 --> VCO 200 MHz
+   8:Core/Src/system_clock.c ****  *                                                  --> /PLLP=2 --> 100 MHz = SYSCLK
+   9:Core/Src/system_clock.c ****  *
+  10:Core/Src/system_clock.c ****  *   AHB  = SYSCLK / 1 = 100 MHz   (limite del F411: 100 MHz)
+  11:Core/Src/system_clock.c ****  *   APB1 = SYSCLK / 2 =  50 MHz   (limite del F411:  50 MHz)
+  12:Core/Src/system_clock.c ****  *   APB2 = SYSCLK / 1 = 100 MHz   (limite del F411: 100 MHz)
+  13:Core/Src/system_clock.c ****  *
+  14:Core/Src/system_clock.c ****  * Se elige HSI y no HSE como fuente del PLL por dos razones:
+  15:Core/Src/system_clock.c ****  *   1. El LED exigido esta en PH1, que es el pin OSC_OUT del HSE. Usando HSI
+  16:Core/Src/system_clock.c ****  *      el puerto GPIOH queda completamente libre.
+  17:Core/Src/system_clock.c ****  *   2. En la Nucleo-F411RE el HSE proviene del MCO del ST-LINK (8 MHz) y
+  18:Core/Src/system_clock.c ****  *      depende de la configuracion de los puentes SB54/SB55.
+  19:Core/Src/system_clock.c ****  */
+  20:Core/Src/system_clock.c **** #include "system_clock.h"
+  21:Core/Src/system_clock.c **** 
+  22:Core/Src/system_clock.c **** /* Fuente actualmente enrutada a MCO1. Estatica: solo visible en este archivo. */
+  23:Core/Src/system_clock.c **** static mco_src_t s_mco_src = MCO_SRC_PLL;
+  24:Core/Src/system_clock.c **** 
+  25:Core/Src/system_clock.c **** /* Frecuencia real medida en PA8 tras aplicar el prescaler, en hercios. */
+  26:Core/Src/system_clock.c **** static uint32_t  s_mco_freq = 20000000U;
+  27:Core/Src/system_clock.c **** 
+  28:Core/Src/system_clock.c **** /* 1 si el cristal LSE arranco correctamente; 0 si no esta montado o no oscila */
+  29:Core/Src/system_clock.c **** static uint8_t   s_lse_ok = 0;
+ARM GAS  /tmp/cc6RsDJF.s 			page 2
+
+
+  30:Core/Src/system_clock.c **** 
+  31:Core/Src/system_clock.c **** /*
+  32:Core/Src/system_clock.c ****  * system_clock_init
+  33:Core/Src/system_clock.c ****  * Configura la alimentacion, la latencia de FLASH, los osciladores y los buses.
+  34:Core/Src/system_clock.c ****  * Debe llamarse inmediatamente despues de HAL_Init() y antes de cualquier
+  35:Core/Src/system_clock.c ****  * inicializacion de periferico.
+  36:Core/Src/system_clock.c ****  */
+  37:Core/Src/system_clock.c **** void system_clock_init(void)
+  38:Core/Src/system_clock.c **** {
+  39:Core/Src/system_clock.c ****     RCC_OscInitTypeDef       osc = {0};   /* configuracion de osciladores */
+  40:Core/Src/system_clock.c ****     RCC_ClkInitTypeDef       clk = {0};   /* configuracion de buses       */
+  41:Core/Src/system_clock.c **** 
+  42:Core/Src/system_clock.c ****     /* --- 1. Alimentacion del regulador interno -------------------------- */
+  43:Core/Src/system_clock.c ****     /* Habilita el reloj del bloque PWR: sin el no se puede escribir en PWR->CR */
+  44:Core/Src/system_clock.c ****     __HAL_RCC_PWR_CLK_ENABLE();
+  45:Core/Src/system_clock.c **** 
+  46:Core/Src/system_clock.c ****     /* Escala de voltaje 1: unica que admite 100 MHz en el F411.
+  47:Core/Src/system_clock.c ****        Alternativas: SCALE2 (hasta 84 MHz) y SCALE3 (hasta 64 MHz), que
+  48:Core/Src/system_clock.c ****        consumen menos corriente pero limitan la frecuencia maxima. */
+  49:Core/Src/system_clock.c ****     __HAL_PWR_VOLTAGESCALING_CONFIG(PWR_REGULATOR_VOLTAGE_SCALE1);
+  50:Core/Src/system_clock.c **** 
+  51:Core/Src/system_clock.c ****     /* Permite escribir en el dominio de respaldo (Backup Domain), necesario
+  52:Core/Src/system_clock.c ****        para arrancar el LSE y para configurar el RTC. */
+  53:Core/Src/system_clock.c ****     HAL_PWR_EnableBkUpAccess();
+  54:Core/Src/system_clock.c **** 
+  55:Core/Src/system_clock.c ****     /* --- 2. Oscilador HSI y PLL (critico) ------------------------------- */
+  56:Core/Src/system_clock.c ****     /* El LSE se configura APARTE, mas abajo. Motivo: muchas placas
+  57:Core/Src/system_clock.c ****        NUCLEO-F411RE se sirven sin el cristal X2 de 32.768 kHz montado. Si el
+  58:Core/Src/system_clock.c ****        LSE se configurase en la misma llamada, su fallo abortaria tambien la
+  59:Core/Src/system_clock.c ****        configuracion del PLL y el sistema entero quedaria detenido en
+  60:Core/Src/system_clock.c ****        Error_Handler, sin LCD, sin UART y sin LED de 250 ms. */
+  61:Core/Src/system_clock.c ****     osc.OscillatorType      = RCC_OSCILLATORTYPE_HSI;
+  62:Core/Src/system_clock.c ****     osc.HSIState            = RCC_HSI_ON;              /* enciende el HSI     */
+  63:Core/Src/system_clock.c ****     osc.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT; /* trim de fabrica  */
+  64:Core/Src/system_clock.c **** 
+  65:Core/Src/system_clock.c ****     osc.PLL.PLLState        = RCC_PLL_ON;              /* activa el PLL       */
+  66:Core/Src/system_clock.c ****     osc.PLL.PLLSource       = RCC_PLLSOURCE_HSI;       /* entrada del PLL     */
+  67:Core/Src/system_clock.c ****     osc.PLL.PLLM            = 8U;    /* divisor de entrada: 16 MHz / 8 = 2 MHz.
+  68:Core/Src/system_clock.c ****                                         La entrada al VCO debe quedar entre
+  69:Core/Src/system_clock.c ****                                         1 y 2 MHz; 2 MHz minimiza el jitter */
+  70:Core/Src/system_clock.c ****     osc.PLL.PLLN            = 100U;  /* multiplicador: 2 MHz * 100 = 200 MHz.
+  71:Core/Src/system_clock.c ****                                         El VCO debe quedar entre 100 y 432 MHz */
+  72:Core/Src/system_clock.c ****     osc.PLL.PLLP            = RCC_PLLP_DIV2; /* 200 MHz / 2 = 100 MHz = SYSCLK.
+  73:Core/Src/system_clock.c ****                                         Valores posibles: DIV2, DIV4, DIV6, DIV8 */
+  74:Core/Src/system_clock.c ****     osc.PLL.PLLQ            = 4U;    /* rama para USB/SDIO: 200 MHz / 4 = 50 MHz.
+  75:Core/Src/system_clock.c ****                                         No se usa en este proyecto, pero la HAL
+  76:Core/Src/system_clock.c ****                                         exige un valor valido (2..15) */
+  77:Core/Src/system_clock.c **** 
+  78:Core/Src/system_clock.c ****     if (HAL_RCC_OscConfig(&osc) != HAL_OK) {
+  79:Core/Src/system_clock.c ****         Error_Handler();             /* fallo del PLL: este si es irrecuperable */
+  80:Core/Src/system_clock.c ****     }
+  81:Core/Src/system_clock.c **** 
+  82:Core/Src/system_clock.c ****     /* --- 3. Buses del sistema ------------------------------------------- */
+  83:Core/Src/system_clock.c ****     /* Se indican los cuatro relojes que se van a modificar */
+  84:Core/Src/system_clock.c ****     clk.ClockType      = RCC_CLOCKTYPE_HCLK   | RCC_CLOCKTYPE_SYSCLK |
+  85:Core/Src/system_clock.c ****                          RCC_CLOCKTYPE_PCLK1  | RCC_CLOCKTYPE_PCLK2;
+  86:Core/Src/system_clock.c ****     clk.SYSCLKSource   = RCC_SYSCLKSOURCE_PLLCLK; /* el PLL alimenta el sistema */
+ARM GAS  /tmp/cc6RsDJF.s 			page 3
+
+
+  87:Core/Src/system_clock.c ****     clk.AHBCLKDivider  = RCC_SYSCLK_DIV1;         /* HCLK  = 100 MHz            */
+  88:Core/Src/system_clock.c ****     clk.APB1CLKDivider = RCC_HCLK_DIV2;           /* PCLK1 =  50 MHz (maximo)   */
+  89:Core/Src/system_clock.c ****     clk.APB2CLKDivider = RCC_HCLK_DIV1;           /* PCLK2 = 100 MHz            */
+  90:Core/Src/system_clock.c **** 
+  91:Core/Src/system_clock.c ****     /* FLASH_LATENCY_3 = 3 estados de espera.
+  92:Core/Src/system_clock.c ****        A 3.3 V la FLASH admite 30 MHz por estado de espera:
+  93:Core/Src/system_clock.c ****          0 WS <= 30 MHz, 1 WS <= 60 MHz, 2 WS <= 90 MHz, 3 WS <= 100 MHz.
+  94:Core/Src/system_clock.c ****        Un valor menor al necesario provoca lecturas erroneas de instrucciones. */
+  95:Core/Src/system_clock.c ****     if (HAL_RCC_ClockConfig(&clk, FLASH_LATENCY_3) != HAL_OK) {
+  96:Core/Src/system_clock.c ****         Error_Handler();
+  97:Core/Src/system_clock.c ****     }
+  98:Core/Src/system_clock.c **** 
+  99:Core/Src/system_clock.c ****     /* Actualiza la variable global SystemCoreClock y reprograma el SysTick
+ 100:Core/Src/system_clock.c ****        para que siga generando interrupciones cada 1 ms con el nuevo HCLK. */
+ 101:Core/Src/system_clock.c ****     SystemCoreClockUpdate();
+ 102:Core/Src/system_clock.c ****     HAL_InitTick(TICK_INT_PRIORITY);
+ 103:Core/Src/system_clock.c **** 
+ 104:Core/Src/system_clock.c ****     /* --- 4. Cristal LSE de 32.768 kHz (NO critico) ----------------------- */
+ 105:Core/Src/system_clock.c ****     /* Se intenta arrancar por separado. Si el cristal no esta montado o no
+ 106:Core/Src/system_clock.c ****        oscila, la llamada agota LSE_STARTUP_TIMEOUT (5 s por defecto) y
+ 107:Core/Src/system_clock.c ****        devuelve error, pero el sistema CONTINUA: el RTC recurrira al LSI y el
+ 108:Core/Src/system_clock.c ****        resto de funciones queda intacto. El diagnostico se emite por UART. */
+ 109:Core/Src/system_clock.c ****     osc.OscillatorType = RCC_OSCILLATORTYPE_LSE;
+ 110:Core/Src/system_clock.c ****     osc.PLL.PLLState   = RCC_PLL_NONE;   /* no volver a tocar el PLL ya activo */
+ 111:Core/Src/system_clock.c ****     osc.LSEState       = RCC_LSE_ON;
+ 112:Core/Src/system_clock.c ****     /* Alternativa: RCC_LSE_BYPASS si se inyecta un reloj externo ya generado */
+ 113:Core/Src/system_clock.c **** 
+ 114:Core/Src/system_clock.c ****     s_lse_ok = (HAL_RCC_OscConfig(&osc) == HAL_OK) ? 1U : 0U;
+ 115:Core/Src/system_clock.c **** 
+ 116:Core/Src/system_clock.c ****     if (!s_lse_ok) {
+ 117:Core/Src/system_clock.c ****         /* Reserva: oscilador interno de baja velocidad. Permite que el RTC
+ 118:Core/Src/system_clock.c ****            siga contando y que el equipo sea diagnosticable, pero NO cumple el
+ 119:Core/Src/system_clock.c ****            enunciado: el LSI se detiene al desaparecer VDD, de modo que la
+ 120:Core/Src/system_clock.c ****            hora no sobrevive a la perdida de alimentacion. La causa debe
+ 121:Core/Src/system_clock.c ****            corregirse en el hardware (cristal X2 y puentes SB48/SB49). */
+ 122:Core/Src/system_clock.c ****         osc.OscillatorType = RCC_OSCILLATORTYPE_LSI;
+ 123:Core/Src/system_clock.c ****         osc.PLL.PLLState   = RCC_PLL_NONE;
+ 124:Core/Src/system_clock.c ****         osc.LSIState       = RCC_LSI_ON;
+ 125:Core/Src/system_clock.c ****         HAL_RCC_OscConfig(&osc);
+ 126:Core/Src/system_clock.c ****     }
+ 127:Core/Src/system_clock.c **** 
+ 128:Core/Src/system_clock.c ****     /* --- 5. Salida MCO1 por defecto ------------------------------------- */
+ 129:Core/Src/system_clock.c ****     system_clock_mco_set(MCO_SRC_PLL);
+ 130:Core/Src/system_clock.c **** }
+ 131:Core/Src/system_clock.c **** 
+ 132:Core/Src/system_clock.c **** /*
+ 133:Core/Src/system_clock.c ****  * system_clock_mco_set
+ 134:Core/Src/system_clock.c ****  * Enruta la fuente indicada al pin PA8 (MCO1) con el mejor prescaler posible.
+ 135:Core/Src/system_clock.c ****  *
+ 136:Core/Src/system_clock.c ****  * Criterio de "mejor prescaler": la menor division que mantenga la senal
+ 137:Core/Src/system_clock.c ****  * medible con un osciloscopio o analizador logico corriente.
+ 138:Core/Src/system_clock.c ****  *   - HSI 16 MHz  -> /1  = 16 MHz     (sin division, se observa integra)
+ 139:Core/Src/system_clock.c ****  *   - LSE 32.768 kHz -> /1 = 32.768 kHz (dividirla la haria irreconocible)
+ 140:Core/Src/system_clock.c ****  *   - PLL 100 MHz -> /5  = 20 MHz     (/5 es la maxima division disponible;
+ 141:Core/Src/system_clock.c ****  *                                      reduce el slew rate exigido al pin y
+ 142:Core/Src/system_clock.c ****  *                                      evita el deterioro del flanco que
+ 143:Core/Src/system_clock.c ****  *                                      presenta la salida directa a 100 MHz)
+ARM GAS  /tmp/cc6RsDJF.s 			page 4
+
+
+ 144:Core/Src/system_clock.c ****  *
+ 145:Core/Src/system_clock.c ****  * HAL_RCC_MCOConfig se encarga internamente de habilitar el reloj de GPIOA y
+ 146:Core/Src/system_clock.c ****  * de configurar PA8 como funcion alternativa AF0 a muy alta velocidad.
+ 147:Core/Src/system_clock.c ****  */
+ 148:Core/Src/system_clock.c **** void system_clock_mco_set(mco_src_t src)
+ 149:Core/Src/system_clock.c **** {
+  30              		.loc 1 149 1 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  34              		.loc 1 149 1 is_stmt 0 view .LVU1
+  35 0000 10B5     		push	{r4, lr}
+  36              	.LCFI0:
+  37              		.cfi_def_cfa_offset 8
+  38              		.cfi_offset 4, -8
+  39              		.cfi_offset 14, -4
+ 150:Core/Src/system_clock.c ****     switch (src) {
+  40              		.loc 1 150 5 is_stmt 1 view .LVU2
+  41 0002 0446     		mov	r4, r0
+  42 0004 90B1     		cbz	r0, .L2
+  43 0006 0128     		cmp	r0, #1
+  44 0008 1AD0     		beq	.L3
+ 151:Core/Src/system_clock.c **** 
+ 152:Core/Src/system_clock.c ****     case MCO_SRC_HSI:
+ 153:Core/Src/system_clock.c ****         HAL_RCC_MCOConfig(RCC_MCO1, RCC_MCO1SOURCE_HSI, RCC_MCODIV_1);
+ 154:Core/Src/system_clock.c ****         s_mco_freq = HSI_VALUE;              /* 16 000 000 Hz */
+ 155:Core/Src/system_clock.c ****         break;
+ 156:Core/Src/system_clock.c **** 
+ 157:Core/Src/system_clock.c ****     case MCO_SRC_LSE:
+ 158:Core/Src/system_clock.c ****         HAL_RCC_MCOConfig(RCC_MCO1, RCC_MCO1SOURCE_LSE, RCC_MCODIV_1);
+ 159:Core/Src/system_clock.c ****         /* Si el cristal no oscila, MCO1 queda en reposo: se refleja con una
+ 160:Core/Src/system_clock.c ****            frecuencia de 0 para que el informe por UART no sea enganoso. */
+ 161:Core/Src/system_clock.c ****         s_mco_freq = s_lse_ok ? LSE_VALUE : 0U;
+ 162:Core/Src/system_clock.c ****         break;
+ 163:Core/Src/system_clock.c **** 
+ 164:Core/Src/system_clock.c ****     case MCO_SRC_PLL:
+ 165:Core/Src/system_clock.c ****     default:
+ 166:Core/Src/system_clock.c ****         HAL_RCC_MCOConfig(RCC_MCO1, RCC_MCO1SOURCE_PLLCLK, RCC_MCODIV_5);
+  45              		.loc 1 166 9 view .LVU3
+  46 000a 4FF0E062 		mov	r2, #117440512
+  47 000e 4FF4C001 		mov	r1, #6291456
+  48 0012 0020     		movs	r0, #0
+  49              	.LVL1:
+  50              		.loc 1 166 9 is_stmt 0 view .LVU4
+  51 0014 FFF7FEFF 		bl	HAL_RCC_MCOConfig
+  52              	.LVL2:
+ 167:Core/Src/system_clock.c ****         s_mco_freq = HAL_RCC_GetSysClockFreq() / 5U;  /* 100 MHz / 5 = 20 MHz */
+  53              		.loc 1 167 9 is_stmt 1 view .LVU5
+  54              		.loc 1 167 22 is_stmt 0 view .LVU6
+  55 0018 FFF7FEFF 		bl	HAL_RCC_GetSysClockFreq
+  56              	.LVL3:
+  57              		.loc 1 167 48 discriminator 1 view .LVU7
+  58 001c 104B     		ldr	r3, .L11
+  59 001e A3FB0030 		umull	r3, r0, r3, r0
+  60 0022 8008     		lsrs	r0, r0, #2
+  61              		.loc 1 167 20 discriminator 1 view .LVU8
+  62 0024 0F4B     		ldr	r3, .L11+4
+ARM GAS  /tmp/cc6RsDJF.s 			page 5
+
+
+  63 0026 1860     		str	r0, [r3]
+ 168:Core/Src/system_clock.c ****         src = MCO_SRC_PLL;                   /* normaliza el valor guardado  */
+  64              		.loc 1 168 9 is_stmt 1 view .LVU9
+  65              	.LVL4:
+ 169:Core/Src/system_clock.c ****         break;
+  66              		.loc 1 169 9 view .LVU10
+ 168:Core/Src/system_clock.c ****         src = MCO_SRC_PLL;                   /* normaliza el valor guardado  */
+  67              		.loc 1 168 13 is_stmt 0 view .LVU11
+  68 0028 0224     		movs	r4, #2
+  69              		.loc 1 169 9 view .LVU12
+  70 002a 06E0     		b	.L5
+  71              	.LVL5:
+  72              	.L2:
+ 153:Core/Src/system_clock.c ****         s_mco_freq = HSI_VALUE;              /* 16 000 000 Hz */
+  73              		.loc 1 153 9 is_stmt 1 view .LVU13
+  74 002c 0246     		mov	r2, r0
+  75 002e 0146     		mov	r1, r0
+  76 0030 FFF7FEFF 		bl	HAL_RCC_MCOConfig
+  77              	.LVL6:
+ 154:Core/Src/system_clock.c ****         break;
+  78              		.loc 1 154 9 view .LVU14
+ 154:Core/Src/system_clock.c ****         break;
+  79              		.loc 1 154 20 is_stmt 0 view .LVU15
+  80 0034 0B4B     		ldr	r3, .L11+4
+  81 0036 0C4A     		ldr	r2, .L11+8
+  82 0038 1A60     		str	r2, [r3]
+ 155:Core/Src/system_clock.c **** 
+  83              		.loc 1 155 9 is_stmt 1 view .LVU16
+  84              	.LVL7:
+  85              	.L5:
+ 170:Core/Src/system_clock.c ****     }
+ 171:Core/Src/system_clock.c **** 
+ 172:Core/Src/system_clock.c ****     s_mco_src = src;   /* memoriza la seleccion para consultarla despues */
+  86              		.loc 1 172 5 view .LVU17
+  87              		.loc 1 172 15 is_stmt 0 view .LVU18
+  88 003a 0C4B     		ldr	r3, .L11+12
+  89 003c 1C70     		strb	r4, [r3]
+ 173:Core/Src/system_clock.c **** }
+  90              		.loc 1 173 1 view .LVU19
+  91 003e 10BD     		pop	{r4, pc}
+  92              	.LVL8:
+  93              	.L3:
+ 158:Core/Src/system_clock.c ****         /* Si el cristal no oscila, MCO1 queda en reposo: se refleja con una
+  94              		.loc 1 158 9 is_stmt 1 view .LVU20
+  95 0040 0022     		movs	r2, #0
+  96 0042 4FF40011 		mov	r1, #2097152
+  97 0046 1046     		mov	r0, r2
+  98              	.LVL9:
+ 158:Core/Src/system_clock.c ****         /* Si el cristal no oscila, MCO1 queda en reposo: se refleja con una
+  99              		.loc 1 158 9 is_stmt 0 view .LVU21
+ 100 0048 FFF7FEFF 		bl	HAL_RCC_MCOConfig
+ 101              	.LVL10:
+ 161:Core/Src/system_clock.c ****         break;
+ 102              		.loc 1 161 9 is_stmt 1 view .LVU22
+ 161:Core/Src/system_clock.c ****         break;
+ 103              		.loc 1 161 31 is_stmt 0 view .LVU23
+ 104 004c 084B     		ldr	r3, .L11+16
+ARM GAS  /tmp/cc6RsDJF.s 			page 6
+
+
+ 105 004e 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 161:Core/Src/system_clock.c ****         break;
+ 106              		.loc 1 161 43 view .LVU24
+ 107 0050 23B1     		cbz	r3, .L8
+ 161:Core/Src/system_clock.c ****         break;
+ 108              		.loc 1 161 43 discriminator 1 view .LVU25
+ 109 0052 4FF40042 		mov	r2, #32768
+ 110              	.L6:
+ 161:Core/Src/system_clock.c ****         break;
+ 111              		.loc 1 161 20 discriminator 3 view .LVU26
+ 112 0056 034B     		ldr	r3, .L11+4
+ 113 0058 1A60     		str	r2, [r3]
+ 162:Core/Src/system_clock.c **** 
+ 114              		.loc 1 162 9 is_stmt 1 view .LVU27
+ 115 005a EEE7     		b	.L5
+ 116              	.L8:
+ 161:Core/Src/system_clock.c ****         break;
+ 117              		.loc 1 161 43 is_stmt 0 discriminator 2 view .LVU28
+ 118 005c 1A46     		mov	r2, r3
+ 119 005e FAE7     		b	.L6
+ 120              	.L12:
+ 121              		.align	2
+ 122              	.L11:
+ 123 0060 CDCCCCCC 		.word	-858993459
+ 124 0064 00000000 		.word	s_mco_freq
+ 125 0068 0024F400 		.word	16000000
+ 126 006c 00000000 		.word	s_mco_src
+ 127 0070 00000000 		.word	s_lse_ok
+ 128              		.cfi_endproc
+ 129              	.LFE269:
+ 131              		.section	.text.system_clock_init,"ax",%progbits
+ 132              		.align	1
+ 133              		.global	system_clock_init
+ 134              		.syntax unified
+ 135              		.thumb
+ 136              		.thumb_func
+ 138              	system_clock_init:
+ 139              	.LFB268:
+  38:Core/Src/system_clock.c ****     RCC_OscInitTypeDef       osc = {0};   /* configuracion de osciladores */
+ 140              		.loc 1 38 1 is_stmt 1 view -0
+ 141              		.cfi_startproc
+ 142              		@ args = 0, pretend = 0, frame = 80
+ 143              		@ frame_needed = 0, uses_anonymous_args = 0
+ 144 0000 30B5     		push	{r4, r5, lr}
+ 145              	.LCFI1:
+ 146              		.cfi_def_cfa_offset 12
+ 147              		.cfi_offset 4, -12
+ 148              		.cfi_offset 5, -8
+ 149              		.cfi_offset 14, -4
+ 150 0002 95B0     		sub	sp, sp, #84
+ 151              	.LCFI2:
+ 152              		.cfi_def_cfa_offset 96
+  39:Core/Src/system_clock.c ****     RCC_ClkInitTypeDef       clk = {0};   /* configuracion de buses       */
+ 153              		.loc 1 39 5 view .LVU30
+  39:Core/Src/system_clock.c ****     RCC_ClkInitTypeDef       clk = {0};   /* configuracion de buses       */
+ 154              		.loc 1 39 30 is_stmt 0 view .LVU31
+ 155 0004 08AD     		add	r5, sp, #32
+ARM GAS  /tmp/cc6RsDJF.s 			page 7
+
+
+ 156 0006 3022     		movs	r2, #48
+ 157 0008 0021     		movs	r1, #0
+ 158 000a 2846     		mov	r0, r5
+ 159 000c FFF7FEFF 		bl	memset
+ 160              	.LVL11:
+  40:Core/Src/system_clock.c **** 
+ 161              		.loc 1 40 5 is_stmt 1 view .LVU32
+  40:Core/Src/system_clock.c **** 
+ 162              		.loc 1 40 30 is_stmt 0 view .LVU33
+ 163 0010 0024     		movs	r4, #0
+ 164 0012 0394     		str	r4, [sp, #12]
+ 165 0014 0494     		str	r4, [sp, #16]
+ 166 0016 0594     		str	r4, [sp, #20]
+ 167 0018 0694     		str	r4, [sp, #24]
+ 168 001a 0794     		str	r4, [sp, #28]
+  44:Core/Src/system_clock.c **** 
+ 169              		.loc 1 44 5 is_stmt 1 view .LVU34
+ 170              	.LBB2:
+  44:Core/Src/system_clock.c **** 
+ 171              		.loc 1 44 5 view .LVU35
+ 172 001c 0194     		str	r4, [sp, #4]
+  44:Core/Src/system_clock.c **** 
+ 173              		.loc 1 44 5 view .LVU36
+ 174 001e 314B     		ldr	r3, .L23
+ 175 0020 1A6C     		ldr	r2, [r3, #64]
+ 176 0022 42F08052 		orr	r2, r2, #268435456
+ 177 0026 1A64     		str	r2, [r3, #64]
+  44:Core/Src/system_clock.c **** 
+ 178              		.loc 1 44 5 view .LVU37
+ 179 0028 1B6C     		ldr	r3, [r3, #64]
+ 180 002a 03F08053 		and	r3, r3, #268435456
+ 181 002e 0193     		str	r3, [sp, #4]
+  44:Core/Src/system_clock.c **** 
+ 182              		.loc 1 44 5 view .LVU38
+ 183 0030 019B     		ldr	r3, [sp, #4]
+ 184              	.LBE2:
+  44:Core/Src/system_clock.c **** 
+ 185              		.loc 1 44 5 view .LVU39
+  49:Core/Src/system_clock.c **** 
+ 186              		.loc 1 49 5 view .LVU40
+ 187              	.LBB3:
+  49:Core/Src/system_clock.c **** 
+ 188              		.loc 1 49 5 view .LVU41
+ 189 0032 0294     		str	r4, [sp, #8]
+  49:Core/Src/system_clock.c **** 
+ 190              		.loc 1 49 5 view .LVU42
+ 191 0034 2C4B     		ldr	r3, .L23+4
+ 192 0036 1A68     		ldr	r2, [r3]
+ 193 0038 42F44042 		orr	r2, r2, #49152
+ 194 003c 1A60     		str	r2, [r3]
+  49:Core/Src/system_clock.c **** 
+ 195              		.loc 1 49 5 view .LVU43
+ 196 003e 1B68     		ldr	r3, [r3]
+ 197 0040 03F44043 		and	r3, r3, #49152
+ 198 0044 0293     		str	r3, [sp, #8]
+  49:Core/Src/system_clock.c **** 
+ 199              		.loc 1 49 5 view .LVU44
+ARM GAS  /tmp/cc6RsDJF.s 			page 8
+
+
+ 200 0046 029B     		ldr	r3, [sp, #8]
+ 201              	.LBE3:
+  49:Core/Src/system_clock.c **** 
+ 202              		.loc 1 49 5 view .LVU45
+  53:Core/Src/system_clock.c **** 
+ 203              		.loc 1 53 5 view .LVU46
+ 204 0048 FFF7FEFF 		bl	HAL_PWR_EnableBkUpAccess
+ 205              	.LVL12:
+  61:Core/Src/system_clock.c ****     osc.HSIState            = RCC_HSI_ON;              /* enciende el HSI     */
+ 206              		.loc 1 61 5 view .LVU47
+  61:Core/Src/system_clock.c ****     osc.HSIState            = RCC_HSI_ON;              /* enciende el HSI     */
+ 207              		.loc 1 61 29 is_stmt 0 view .LVU48
+ 208 004c 0223     		movs	r3, #2
+ 209 004e 0893     		str	r3, [sp, #32]
+  62:Core/Src/system_clock.c ****     osc.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT; /* trim de fabrica  */
+ 210              		.loc 1 62 5 is_stmt 1 view .LVU49
+  62:Core/Src/system_clock.c ****     osc.HSICalibrationValue = RCC_HSICALIBRATION_DEFAULT; /* trim de fabrica  */
+ 211              		.loc 1 62 29 is_stmt 0 view .LVU50
+ 212 0050 0122     		movs	r2, #1
+ 213 0052 0B92     		str	r2, [sp, #44]
+  63:Core/Src/system_clock.c **** 
+ 214              		.loc 1 63 5 is_stmt 1 view .LVU51
+  63:Core/Src/system_clock.c **** 
+ 215              		.loc 1 63 29 is_stmt 0 view .LVU52
+ 216 0054 1022     		movs	r2, #16
+ 217 0056 0C92     		str	r2, [sp, #48]
+  65:Core/Src/system_clock.c ****     osc.PLL.PLLSource       = RCC_PLLSOURCE_HSI;       /* entrada del PLL     */
+ 218              		.loc 1 65 5 is_stmt 1 view .LVU53
+  65:Core/Src/system_clock.c ****     osc.PLL.PLLSource       = RCC_PLLSOURCE_HSI;       /* entrada del PLL     */
+ 219              		.loc 1 65 29 is_stmt 0 view .LVU54
+ 220 0058 0E93     		str	r3, [sp, #56]
+  66:Core/Src/system_clock.c ****     osc.PLL.PLLM            = 8U;    /* divisor de entrada: 16 MHz / 8 = 2 MHz.
+ 221              		.loc 1 66 5 is_stmt 1 view .LVU55
+  66:Core/Src/system_clock.c ****     osc.PLL.PLLM            = 8U;    /* divisor de entrada: 16 MHz / 8 = 2 MHz.
+ 222              		.loc 1 66 29 is_stmt 0 view .LVU56
+ 223 005a 0F94     		str	r4, [sp, #60]
+  67:Core/Src/system_clock.c ****                                         La entrada al VCO debe quedar entre
+ 224              		.loc 1 67 5 is_stmt 1 view .LVU57
+  67:Core/Src/system_clock.c ****                                         La entrada al VCO debe quedar entre
+ 225              		.loc 1 67 29 is_stmt 0 view .LVU58
+ 226 005c 0822     		movs	r2, #8
+ 227 005e 1092     		str	r2, [sp, #64]
+  70:Core/Src/system_clock.c ****                                         El VCO debe quedar entre 100 y 432 MHz */
+ 228              		.loc 1 70 5 is_stmt 1 view .LVU59
+  70:Core/Src/system_clock.c ****                                         El VCO debe quedar entre 100 y 432 MHz */
+ 229              		.loc 1 70 29 is_stmt 0 view .LVU60
+ 230 0060 6422     		movs	r2, #100
+ 231 0062 1192     		str	r2, [sp, #68]
+  72:Core/Src/system_clock.c ****                                         Valores posibles: DIV2, DIV4, DIV6, DIV8 */
+ 232              		.loc 1 72 5 is_stmt 1 view .LVU61
+  72:Core/Src/system_clock.c ****                                         Valores posibles: DIV2, DIV4, DIV6, DIV8 */
+ 233              		.loc 1 72 29 is_stmt 0 view .LVU62
+ 234 0064 1293     		str	r3, [sp, #72]
+  74:Core/Src/system_clock.c ****                                         No se usa en este proyecto, pero la HAL
+ 235              		.loc 1 74 5 is_stmt 1 view .LVU63
+  74:Core/Src/system_clock.c ****                                         No se usa en este proyecto, pero la HAL
+ 236              		.loc 1 74 29 is_stmt 0 view .LVU64
+ARM GAS  /tmp/cc6RsDJF.s 			page 9
+
+
+ 237 0066 0423     		movs	r3, #4
+ 238 0068 1393     		str	r3, [sp, #76]
+  78:Core/Src/system_clock.c ****         Error_Handler();             /* fallo del PLL: este si es irrecuperable */
+ 239              		.loc 1 78 5 is_stmt 1 view .LVU65
+  78:Core/Src/system_clock.c ****         Error_Handler();             /* fallo del PLL: este si es irrecuperable */
+ 240              		.loc 1 78 9 is_stmt 0 view .LVU66
+ 241 006a 2846     		mov	r0, r5
+ 242 006c FFF7FEFF 		bl	HAL_RCC_OscConfig
+ 243              	.LVL13:
+  78:Core/Src/system_clock.c ****         Error_Handler();             /* fallo del PLL: este si es irrecuperable */
+ 244              		.loc 1 78 8 discriminator 1 view .LVU67
+ 245 0070 30BB     		cbnz	r0, .L20
+ 246              	.L14:
+  84:Core/Src/system_clock.c ****                          RCC_CLOCKTYPE_PCLK1  | RCC_CLOCKTYPE_PCLK2;
+ 247              		.loc 1 84 5 is_stmt 1 view .LVU68
+  84:Core/Src/system_clock.c ****                          RCC_CLOCKTYPE_PCLK1  | RCC_CLOCKTYPE_PCLK2;
+ 248              		.loc 1 84 24 is_stmt 0 view .LVU69
+ 249 0072 0F23     		movs	r3, #15
+ 250 0074 0393     		str	r3, [sp, #12]
+  86:Core/Src/system_clock.c ****     clk.AHBCLKDivider  = RCC_SYSCLK_DIV1;         /* HCLK  = 100 MHz            */
+ 251              		.loc 1 86 5 is_stmt 1 view .LVU70
+  86:Core/Src/system_clock.c ****     clk.AHBCLKDivider  = RCC_SYSCLK_DIV1;         /* HCLK  = 100 MHz            */
+ 252              		.loc 1 86 24 is_stmt 0 view .LVU71
+ 253 0076 0223     		movs	r3, #2
+ 254 0078 0493     		str	r3, [sp, #16]
+  87:Core/Src/system_clock.c ****     clk.APB1CLKDivider = RCC_HCLK_DIV2;           /* PCLK1 =  50 MHz (maximo)   */
+ 255              		.loc 1 87 5 is_stmt 1 view .LVU72
+  87:Core/Src/system_clock.c ****     clk.APB1CLKDivider = RCC_HCLK_DIV2;           /* PCLK1 =  50 MHz (maximo)   */
+ 256              		.loc 1 87 24 is_stmt 0 view .LVU73
+ 257 007a 0023     		movs	r3, #0
+ 258 007c 0593     		str	r3, [sp, #20]
+  88:Core/Src/system_clock.c ****     clk.APB2CLKDivider = RCC_HCLK_DIV1;           /* PCLK2 = 100 MHz            */
+ 259              		.loc 1 88 5 is_stmt 1 view .LVU74
+  88:Core/Src/system_clock.c ****     clk.APB2CLKDivider = RCC_HCLK_DIV1;           /* PCLK2 = 100 MHz            */
+ 260              		.loc 1 88 24 is_stmt 0 view .LVU75
+ 261 007e 4FF48052 		mov	r2, #4096
+ 262 0082 0692     		str	r2, [sp, #24]
+  89:Core/Src/system_clock.c **** 
+ 263              		.loc 1 89 5 is_stmt 1 view .LVU76
+  89:Core/Src/system_clock.c **** 
+ 264              		.loc 1 89 24 is_stmt 0 view .LVU77
+ 265 0084 0793     		str	r3, [sp, #28]
+  95:Core/Src/system_clock.c ****         Error_Handler();
+ 266              		.loc 1 95 5 is_stmt 1 view .LVU78
+  95:Core/Src/system_clock.c ****         Error_Handler();
+ 267              		.loc 1 95 9 is_stmt 0 view .LVU79
+ 268 0086 0321     		movs	r1, #3
+ 269 0088 03A8     		add	r0, sp, #12
+ 270 008a FFF7FEFF 		bl	HAL_RCC_ClockConfig
+ 271              	.LVL14:
+  95:Core/Src/system_clock.c ****         Error_Handler();
+ 272              		.loc 1 95 8 discriminator 1 view .LVU80
+ 273 008e D0B9     		cbnz	r0, .L21
+ 274              	.L15:
+ 101:Core/Src/system_clock.c ****     HAL_InitTick(TICK_INT_PRIORITY);
+ 275              		.loc 1 101 5 is_stmt 1 view .LVU81
+ 276 0090 FFF7FEFF 		bl	SystemCoreClockUpdate
+ARM GAS  /tmp/cc6RsDJF.s 			page 10
+
+
+ 277              	.LVL15:
+ 102:Core/Src/system_clock.c **** 
+ 278              		.loc 1 102 5 view .LVU82
+ 279 0094 0F20     		movs	r0, #15
+ 280 0096 FFF7FEFF 		bl	HAL_InitTick
+ 281              	.LVL16:
+ 109:Core/Src/system_clock.c ****     osc.PLL.PLLState   = RCC_PLL_NONE;   /* no volver a tocar el PLL ya activo */
+ 282              		.loc 1 109 5 view .LVU83
+ 109:Core/Src/system_clock.c ****     osc.PLL.PLLState   = RCC_PLL_NONE;   /* no volver a tocar el PLL ya activo */
+ 283              		.loc 1 109 24 is_stmt 0 view .LVU84
+ 284 009a 0423     		movs	r3, #4
+ 285 009c 0893     		str	r3, [sp, #32]
+ 110:Core/Src/system_clock.c ****     osc.LSEState       = RCC_LSE_ON;
+ 286              		.loc 1 110 5 is_stmt 1 view .LVU85
+ 110:Core/Src/system_clock.c ****     osc.LSEState       = RCC_LSE_ON;
+ 287              		.loc 1 110 24 is_stmt 0 view .LVU86
+ 288 009e 0023     		movs	r3, #0
+ 289 00a0 0E93     		str	r3, [sp, #56]
+ 111:Core/Src/system_clock.c ****     /* Alternativa: RCC_LSE_BYPASS si se inyecta un reloj externo ya generado */
+ 290              		.loc 1 111 5 is_stmt 1 view .LVU87
+ 111:Core/Src/system_clock.c ****     /* Alternativa: RCC_LSE_BYPASS si se inyecta un reloj externo ya generado */
+ 291              		.loc 1 111 24 is_stmt 0 view .LVU88
+ 292 00a2 0123     		movs	r3, #1
+ 293 00a4 0A93     		str	r3, [sp, #40]
+ 114:Core/Src/system_clock.c **** 
+ 294              		.loc 1 114 5 is_stmt 1 view .LVU89
+ 114:Core/Src/system_clock.c **** 
+ 295              		.loc 1 114 17 is_stmt 0 view .LVU90
+ 296 00a6 08A8     		add	r0, sp, #32
+ 297 00a8 FFF7FEFF 		bl	HAL_RCC_OscConfig
+ 298              	.LVL17:
+ 114:Core/Src/system_clock.c **** 
+ 299              		.loc 1 114 14 discriminator 1 view .LVU91
+ 300 00ac 70B9     		cbnz	r0, .L18
+ 114:Core/Src/system_clock.c **** 
+ 301              		.loc 1 114 14 discriminator 2 view .LVU92
+ 302 00ae 0123     		movs	r3, #1
+ 303              	.L16:
+ 114:Core/Src/system_clock.c **** 
+ 304              		.loc 1 114 14 discriminator 4 view .LVU93
+ 305 00b0 0E4A     		ldr	r2, .L23+8
+ 306 00b2 1370     		strb	r3, [r2]
+ 116:Core/Src/system_clock.c ****         /* Reserva: oscilador interno de baja velocidad. Permite que el RTC
+ 307              		.loc 1 116 5 is_stmt 1 view .LVU94
+ 116:Core/Src/system_clock.c ****         /* Reserva: oscilador interno de baja velocidad. Permite que el RTC
+ 308              		.loc 1 116 8 is_stmt 0 view .LVU95
+ 309 00b4 63B1     		cbz	r3, .L22
+ 310              	.L17:
+ 129:Core/Src/system_clock.c **** }
+ 311              		.loc 1 129 5 is_stmt 1 view .LVU96
+ 312 00b6 0220     		movs	r0, #2
+ 313 00b8 FFF7FEFF 		bl	system_clock_mco_set
+ 314              	.LVL18:
+ 130:Core/Src/system_clock.c **** 
+ 315              		.loc 1 130 1 is_stmt 0 view .LVU97
+ 316 00bc 15B0     		add	sp, sp, #84
+ 317              	.LCFI3:
+ARM GAS  /tmp/cc6RsDJF.s 			page 11
+
+
+ 318              		.cfi_remember_state
+ 319              		.cfi_def_cfa_offset 12
+ 320              		@ sp needed
+ 321 00be 30BD     		pop	{r4, r5, pc}
+ 322              	.L20:
+ 323              	.LCFI4:
+ 324              		.cfi_restore_state
+  79:Core/Src/system_clock.c ****     }
+ 325              		.loc 1 79 9 is_stmt 1 view .LVU98
+ 326 00c0 FFF7FEFF 		bl	Error_Handler
+ 327              	.LVL19:
+ 328 00c4 D5E7     		b	.L14
+ 329              	.L21:
+  96:Core/Src/system_clock.c ****     }
+ 330              		.loc 1 96 9 view .LVU99
+ 331 00c6 FFF7FEFF 		bl	Error_Handler
+ 332              	.LVL20:
+ 333 00ca E1E7     		b	.L15
+ 334              	.L18:
+ 114:Core/Src/system_clock.c **** 
+ 335              		.loc 1 114 14 is_stmt 0 discriminator 3 view .LVU100
+ 336 00cc 0023     		movs	r3, #0
+ 337 00ce EFE7     		b	.L16
+ 338              	.L22:
+ 122:Core/Src/system_clock.c ****         osc.PLL.PLLState   = RCC_PLL_NONE;
+ 339              		.loc 1 122 9 is_stmt 1 view .LVU101
+ 122:Core/Src/system_clock.c ****         osc.PLL.PLLState   = RCC_PLL_NONE;
+ 340              		.loc 1 122 28 is_stmt 0 view .LVU102
+ 341 00d0 0823     		movs	r3, #8
+ 342 00d2 0893     		str	r3, [sp, #32]
+ 123:Core/Src/system_clock.c ****         osc.LSIState       = RCC_LSI_ON;
+ 343              		.loc 1 123 9 is_stmt 1 view .LVU103
+ 123:Core/Src/system_clock.c ****         osc.LSIState       = RCC_LSI_ON;
+ 344              		.loc 1 123 28 is_stmt 0 view .LVU104
+ 345 00d4 0023     		movs	r3, #0
+ 346 00d6 0E93     		str	r3, [sp, #56]
+ 124:Core/Src/system_clock.c ****         HAL_RCC_OscConfig(&osc);
+ 347              		.loc 1 124 9 is_stmt 1 view .LVU105
+ 124:Core/Src/system_clock.c ****         HAL_RCC_OscConfig(&osc);
+ 348              		.loc 1 124 28 is_stmt 0 view .LVU106
+ 349 00d8 0123     		movs	r3, #1
+ 350 00da 0D93     		str	r3, [sp, #52]
+ 125:Core/Src/system_clock.c ****     }
+ 351              		.loc 1 125 9 is_stmt 1 view .LVU107
+ 352 00dc 08A8     		add	r0, sp, #32
+ 353 00de FFF7FEFF 		bl	HAL_RCC_OscConfig
+ 354              	.LVL21:
+ 355 00e2 E8E7     		b	.L17
+ 356              	.L24:
+ 357              		.align	2
+ 358              	.L23:
+ 359 00e4 00380240 		.word	1073887232
+ 360 00e8 00700040 		.word	1073770496
+ 361 00ec 00000000 		.word	s_lse_ok
+ 362              		.cfi_endproc
+ 363              	.LFE268:
+ 365              		.section	.text.system_clock_mco_get,"ax",%progbits
+ARM GAS  /tmp/cc6RsDJF.s 			page 12
+
+
+ 366              		.align	1
+ 367              		.global	system_clock_mco_get
+ 368              		.syntax unified
+ 369              		.thumb
+ 370              		.thumb_func
+ 372              	system_clock_mco_get:
+ 373              	.LFB270:
+ 174:Core/Src/system_clock.c **** 
+ 175:Core/Src/system_clock.c **** /* Devuelve la fuente MCO1 activa. */
+ 176:Core/Src/system_clock.c **** mco_src_t system_clock_mco_get(void)
+ 177:Core/Src/system_clock.c **** {
+ 374              		.loc 1 177 1 view -0
+ 375              		.cfi_startproc
+ 376              		@ args = 0, pretend = 0, frame = 0
+ 377              		@ frame_needed = 0, uses_anonymous_args = 0
+ 378              		@ link register save eliminated.
+ 178:Core/Src/system_clock.c ****     return s_mco_src;
+ 379              		.loc 1 178 5 view .LVU109
+ 179:Core/Src/system_clock.c **** }
+ 380              		.loc 1 179 1 is_stmt 0 view .LVU110
+ 381 0000 014B     		ldr	r3, .L26
+ 382 0002 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+ 383 0004 7047     		bx	lr
+ 384              	.L27:
+ 385 0006 00BF     		.align	2
+ 386              	.L26:
+ 387 0008 00000000 		.word	s_mco_src
+ 388              		.cfi_endproc
+ 389              	.LFE270:
+ 391              		.section	.rodata.system_clock_mco_label.str1.4,"aMS",%progbits,1
+ 392              		.align	2
+ 393              	.LC0:
+ 394 0000 4D434F31 		.ascii	"MCO1:HSI 16MHz\000"
+ 394      3A485349 
+ 394      2031364D 
+ 394      487A00
+ 395 000f 00       		.align	2
+ 396              	.LC1:
+ 397 0010 4D434F31 		.ascii	"MCO1:LSE NO OSC\000"
+ 397      3A4C5345 
+ 397      204E4F20 
+ 397      4F534300 
+ 398              		.align	2
+ 399              	.LC2:
+ 400 0020 4D434F31 		.ascii	"MCO1:PLL 20MHz\000"
+ 400      3A504C4C 
+ 400      2032304D 
+ 400      487A00
+ 401 002f 00       		.align	2
+ 402              	.LC3:
+ 403 0030 4D434F31 		.ascii	"MCO1:?\000"
+ 403      3A3F00
+ 404 0037 00       		.align	2
+ 405              	.LC4:
+ 406 0038 4D434F31 		.ascii	"MCO1:LSE 32768\000"
+ 406      3A4C5345 
+ 406      20333237 
+ARM GAS  /tmp/cc6RsDJF.s 			page 13
+
+
+ 406      363800
+ 407              		.section	.text.system_clock_mco_label,"ax",%progbits
+ 408              		.align	1
+ 409              		.global	system_clock_mco_label
+ 410              		.syntax unified
+ 411              		.thumb
+ 412              		.thumb_func
+ 414              	system_clock_mco_label:
+ 415              	.LFB271:
+ 180:Core/Src/system_clock.c **** 
+ 181:Core/Src/system_clock.c **** /* Devuelve una cadena corta describiendo la senal presente en PA8. */
+ 182:Core/Src/system_clock.c **** const char *system_clock_mco_label(void)
+ 183:Core/Src/system_clock.c **** {
+ 416              		.loc 1 183 1 is_stmt 1 view -0
+ 417              		.cfi_startproc
+ 418              		@ args = 0, pretend = 0, frame = 0
+ 419              		@ frame_needed = 0, uses_anonymous_args = 0
+ 420              		@ link register save eliminated.
+ 184:Core/Src/system_clock.c ****     switch (s_mco_src) {
+ 421              		.loc 1 184 5 view .LVU112
+ 422 0000 094B     		ldr	r3, .L34
+ 423 0002 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 424 0004 012B     		cmp	r3, #1
+ 425 0006 04D0     		beq	.L29
+ 426 0008 022B     		cmp	r3, #2
+ 427 000a 07D0     		beq	.L31
+ 428 000c 43B9     		cbnz	r3, .L32
+ 429 000e 0748     		ldr	r0, .L34+4
+ 430 0010 7047     		bx	lr
+ 431              	.L29:
+ 185:Core/Src/system_clock.c ****     case MCO_SRC_HSI: return "MCO1:HSI 16MHz";
+ 186:Core/Src/system_clock.c ****     case MCO_SRC_LSE: return s_lse_ok ? "MCO1:LSE 32768" : "MCO1:LSE NO OSC";
+ 432              		.loc 1 186 23 view .LVU113
+ 433              		.loc 1 186 39 is_stmt 0 view .LVU114
+ 434 0012 074B     		ldr	r3, .L34+8
+ 435 0014 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 436              		.loc 1 186 58 view .LVU115
+ 437 0016 2BB1     		cbz	r3, .L33
+ 438              		.loc 1 186 58 discriminator 1 view .LVU116
+ 439 0018 0648     		ldr	r0, .L34+12
+ 440 001a 7047     		bx	lr
+ 441              	.L31:
+ 187:Core/Src/system_clock.c ****     case MCO_SRC_PLL: return "MCO1:PLL 20MHz";
+ 442              		.loc 1 187 30 view .LVU117
+ 443 001c 0648     		ldr	r0, .L34+16
+ 444 001e 7047     		bx	lr
+ 445              	.L32:
+ 188:Core/Src/system_clock.c ****     default:          return "MCO1:?";
+ 446              		.loc 1 188 30 view .LVU118
+ 447 0020 0648     		ldr	r0, .L34+20
+ 448 0022 7047     		bx	lr
+ 449              	.L33:
+ 186:Core/Src/system_clock.c ****     case MCO_SRC_PLL: return "MCO1:PLL 20MHz";
+ 450              		.loc 1 186 58 discriminator 2 view .LVU119
+ 451 0024 0648     		ldr	r0, .L34+24
+ 189:Core/Src/system_clock.c ****     }
+ 190:Core/Src/system_clock.c **** }
+ARM GAS  /tmp/cc6RsDJF.s 			page 14
+
+
+ 452              		.loc 1 190 1 view .LVU120
+ 453 0026 7047     		bx	lr
+ 454              	.L35:
+ 455              		.align	2
+ 456              	.L34:
+ 457 0028 00000000 		.word	s_mco_src
+ 458 002c 00000000 		.word	.LC0
+ 459 0030 00000000 		.word	s_lse_ok
+ 460 0034 38000000 		.word	.LC4
+ 461 0038 20000000 		.word	.LC2
+ 462 003c 30000000 		.word	.LC3
+ 463 0040 10000000 		.word	.LC1
+ 464              		.cfi_endproc
+ 465              	.LFE271:
+ 467              		.section	.text.system_clock_lse_ok,"ax",%progbits
+ 468              		.align	1
+ 469              		.global	system_clock_lse_ok
+ 470              		.syntax unified
+ 471              		.thumb
+ 472              		.thumb_func
+ 474              	system_clock_lse_ok:
+ 475              	.LFB272:
+ 191:Core/Src/system_clock.c **** 
+ 192:Core/Src/system_clock.c **** /* Indica si el LSE llego a oscilar. Lo consultan rtc.c y el diagnostico. */
+ 193:Core/Src/system_clock.c **** uint8_t system_clock_lse_ok(void)
+ 194:Core/Src/system_clock.c **** {
+ 476              		.loc 1 194 1 is_stmt 1 view -0
+ 477              		.cfi_startproc
+ 478              		@ args = 0, pretend = 0, frame = 0
+ 479              		@ frame_needed = 0, uses_anonymous_args = 0
+ 480              		@ link register save eliminated.
+ 195:Core/Src/system_clock.c ****     return s_lse_ok;
+ 481              		.loc 1 195 5 view .LVU122
+ 196:Core/Src/system_clock.c **** }
+ 482              		.loc 1 196 1 is_stmt 0 view .LVU123
+ 483 0000 014B     		ldr	r3, .L37
+ 484 0002 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+ 485 0004 7047     		bx	lr
+ 486              	.L38:
+ 487 0006 00BF     		.align	2
+ 488              	.L37:
+ 489 0008 00000000 		.word	s_lse_ok
+ 490              		.cfi_endproc
+ 491              	.LFE272:
+ 493              		.section	.text.system_clock_mco_freq,"ax",%progbits
+ 494              		.align	1
+ 495              		.global	system_clock_mco_freq
+ 496              		.syntax unified
+ 497              		.thumb
+ 498              		.thumb_func
+ 500              	system_clock_mco_freq:
+ 501              	.LFB273:
+ 197:Core/Src/system_clock.c **** 
+ 198:Core/Src/system_clock.c **** /* Devuelve la frecuencia real presente en PA8, en hercios. */
+ 199:Core/Src/system_clock.c **** uint32_t system_clock_mco_freq(void)
+ 200:Core/Src/system_clock.c **** {
+ 502              		.loc 1 200 1 is_stmt 1 view -0
+ARM GAS  /tmp/cc6RsDJF.s 			page 15
+
+
+ 503              		.cfi_startproc
+ 504              		@ args = 0, pretend = 0, frame = 0
+ 505              		@ frame_needed = 0, uses_anonymous_args = 0
+ 506              		@ link register save eliminated.
+ 201:Core/Src/system_clock.c ****     return s_mco_freq;
+ 507              		.loc 1 201 5 view .LVU125
+ 202:Core/Src/system_clock.c **** }
+ 508              		.loc 1 202 1 is_stmt 0 view .LVU126
+ 509 0000 014B     		ldr	r3, .L40
+ 510 0002 1868     		ldr	r0, [r3]
+ 511 0004 7047     		bx	lr
+ 512              	.L41:
+ 513 0006 00BF     		.align	2
+ 514              	.L40:
+ 515 0008 00000000 		.word	s_mco_freq
+ 516              		.cfi_endproc
+ 517              	.LFE273:
+ 519              		.section	.bss.s_lse_ok,"aw",%nobits
+ 522              	s_lse_ok:
+ 523 0000 00       		.space	1
+ 524              		.section	.data.s_mco_freq,"aw"
+ 525              		.align	2
+ 528              	s_mco_freq:
+ 529 0000 002D3101 		.word	20000000
+ 530              		.section	.data.s_mco_src,"aw"
+ 533              	s_mco_src:
+ 534 0000 02       		.byte	2
+ 535              		.text
+ 536              	.Letext0:
+ 537              		.file 2 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 538              		.file 3 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 539              		.file 4 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h"
+ 540              		.file 5 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+ 541              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc_ex.h"
+ 542              		.file 7 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h"
+ 543              		.file 8 "Core/Inc/system_clock.h"
+ 544              		.file 9 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h"
+ 545              		.file 10 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/system_stm32f4xx.h"
+ 546              		.file 11 "Core/Inc/main.h"
+ 547              		.file 12 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h"
+ 548              		.file 13 "<built-in>"
+ARM GAS  /tmp/cc6RsDJF.s 			page 16
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 system_clock.c
+     /tmp/cc6RsDJF.s:21     .text.system_clock_mco_set:00000000 $t
+     /tmp/cc6RsDJF.s:27     .text.system_clock_mco_set:00000000 system_clock_mco_set
+     /tmp/cc6RsDJF.s:123    .text.system_clock_mco_set:00000060 $d
+     /tmp/cc6RsDJF.s:528    .data.s_mco_freq:00000000 s_mco_freq
+     /tmp/cc6RsDJF.s:533    .data.s_mco_src:00000000 s_mco_src
+     /tmp/cc6RsDJF.s:522    .bss.s_lse_ok:00000000 s_lse_ok
+     /tmp/cc6RsDJF.s:132    .text.system_clock_init:00000000 $t
+     /tmp/cc6RsDJF.s:138    .text.system_clock_init:00000000 system_clock_init
+     /tmp/cc6RsDJF.s:359    .text.system_clock_init:000000e4 $d
+     /tmp/cc6RsDJF.s:366    .text.system_clock_mco_get:00000000 $t
+     /tmp/cc6RsDJF.s:372    .text.system_clock_mco_get:00000000 system_clock_mco_get
+     /tmp/cc6RsDJF.s:387    .text.system_clock_mco_get:00000008 $d
+     /tmp/cc6RsDJF.s:392    .rodata.system_clock_mco_label.str1.4:00000000 $d
+     /tmp/cc6RsDJF.s:408    .text.system_clock_mco_label:00000000 $t
+     /tmp/cc6RsDJF.s:414    .text.system_clock_mco_label:00000000 system_clock_mco_label
+     /tmp/cc6RsDJF.s:457    .text.system_clock_mco_label:00000028 $d
+     /tmp/cc6RsDJF.s:468    .text.system_clock_lse_ok:00000000 $t
+     /tmp/cc6RsDJF.s:474    .text.system_clock_lse_ok:00000000 system_clock_lse_ok
+     /tmp/cc6RsDJF.s:489    .text.system_clock_lse_ok:00000008 $d
+     /tmp/cc6RsDJF.s:494    .text.system_clock_mco_freq:00000000 $t
+     /tmp/cc6RsDJF.s:500    .text.system_clock_mco_freq:00000000 system_clock_mco_freq
+     /tmp/cc6RsDJF.s:515    .text.system_clock_mco_freq:00000008 $d
+     /tmp/cc6RsDJF.s:523    .bss.s_lse_ok:00000000 $d
+     /tmp/cc6RsDJF.s:525    .data.s_mco_freq:00000000 $d
+
+UNDEFINED SYMBOLS
+HAL_RCC_MCOConfig
+HAL_RCC_GetSysClockFreq
+memset
+HAL_PWR_EnableBkUpAccess
+HAL_RCC_OscConfig
+HAL_RCC_ClockConfig
+SystemCoreClockUpdate
+HAL_InitTick
+Error_Handler

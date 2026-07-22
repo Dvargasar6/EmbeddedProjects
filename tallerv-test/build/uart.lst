@@ -1,0 +1,1056 @@
+ARM GAS  /tmp/ccc66gAr.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 1
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"uart.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.file 1 "Core/Src/uart.c"
+  20              		.section	.text.uart_start_tx,"ax",%progbits
+  21              		.align	1
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  26              	uart_start_tx:
+  27              	.LFB268:
+   1:Core/Src/uart.c **** /*
+   2:Core/Src/uart.c ****  * uart.c
+   3:Core/Src/uart.c ****  * Comunicacion serie por interrupciones y traduccion de comandos a eventos.
+   4:Core/Src/uart.c ****  *
+   5:Core/Src/uart.c ****  * Comandos aceptados (un solo caracter, sin necesidad de pulsar Enter):
+   6:Core/Src/uart.c ****  *   c   pone ambas coordenadas a cero
+   7:Core/Src/uart.c ****  *   x   activa el modo X
+   8:Core/Src/uart.c ****  *   y   activa el modo Y
+   9:Core/Src/uart.c ****  *   +   incrementa la coordenada del modo activo
+  10:Core/Src/uart.c ****  *   -   decrementa la coordenada del modo activo
+  11:Core/Src/uart.c ****  *   h   enruta el HSI a la salida MCO1 (PA8)
+  12:Core/Src/uart.c ****  *   l   enruta el LSE a la salida MCO1
+  13:Core/Src/uart.c ****  *   p   enruta el PLL a la salida MCO1
+  14:Core/Src/uart.c ****  *   d   informe de diagnostico de los perifericos
+  15:Core/Src/uart.c ****  *   s   sondeo completo del bus I2C
+  16:Core/Src/uart.c ****  *   ?   imprime la ayuda
+  17:Core/Src/uart.c ****  */
+  18:Core/Src/uart.c **** #include "uart.h"
+  19:Core/Src/uart.c **** #include "fsm.h"
+  20:Core/Src/uart.c **** 
+  21:Core/Src/uart.c **** UART_HandleTypeDef huart2;
+  22:Core/Src/uart.c **** 
+  23:Core/Src/uart.c **** /* Byte donde la HAL deposita cada caracter recibido */
+  24:Core/Src/uart.c **** static volatile uint8_t s_rx_byte;
+  25:Core/Src/uart.c **** 
+  26:Core/Src/uart.c **** /* --- Buffer circular de transmision -------------------------------------- */
+  27:Core/Src/uart.c **** static volatile uint8_t  s_tx_buf[UART_TX_BUF_SIZE];
+  28:Core/Src/uart.c **** static volatile uint16_t s_tx_head = 0;   /* posicion de escritura */
+  29:Core/Src/uart.c **** static volatile uint16_t s_tx_tail = 0;   /* posicion de lectura   */
+  30:Core/Src/uart.c **** static volatile uint8_t  s_tx_busy = 0;   /* 1 si hay un envio en curso */
+  31:Core/Src/uart.c **** 
+ARM GAS  /tmp/ccc66gAr.s 			page 2
+
+
+  32:Core/Src/uart.c **** /* Byte que se esta transmitiendo en este momento */
+  33:Core/Src/uart.c **** static volatile uint8_t  s_tx_current;
+  34:Core/Src/uart.c **** 
+  35:Core/Src/uart.c **** /*
+  36:Core/Src/uart.c ****  * uart_start_tx
+  37:Core/Src/uart.c ****  * Si el buffer no esta vacio y no hay transmision en curso, extrae un byte
+  38:Core/Src/uart.c ****  * y lo entrega a la HAL. Se llama tanto desde el hilo principal como desde
+  39:Core/Src/uart.c ****  * la interrupcion de fin de transmision.
+  40:Core/Src/uart.c ****  */
+  41:Core/Src/uart.c **** static void uart_start_tx(void)
+  42:Core/Src/uart.c **** {
+  28              		.loc 1 42 1 view -0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32 0000 08B5     		push	{r3, lr}
+  33              	.LCFI0:
+  34              		.cfi_def_cfa_offset 8
+  35              		.cfi_offset 3, -8
+  36              		.cfi_offset 14, -4
+  43:Core/Src/uart.c ****     if (s_tx_busy || (s_tx_head == s_tx_tail)) {
+  37              		.loc 1 43 5 view .LVU1
+  38              		.loc 1 43 9 is_stmt 0 view .LVU2
+  39 0002 0D4B     		ldr	r3, .L4
+  40 0004 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+  41              		.loc 1 43 8 view .LVU3
+  42 0006 B3B9     		cbnz	r3, .L1
+  43              		.loc 1 43 33 discriminator 1 view .LVU4
+  44 0008 0C4B     		ldr	r3, .L4+4
+  45 000a 1A88     		ldrh	r2, [r3]
+  46 000c 0C4B     		ldr	r3, .L4+8
+  47 000e 1B88     		ldrh	r3, [r3]
+  48              		.loc 1 43 19 discriminator 1 view .LVU5
+  49 0010 9A42     		cmp	r2, r3
+  50 0012 10D0     		beq	.L1
+  44:Core/Src/uart.c ****         return;   /* ya hay un envio activo, o no queda nada por enviar */
+  45:Core/Src/uart.c ****     }
+  46:Core/Src/uart.c ****     s_tx_current = s_tx_buf[s_tx_tail];
+  51              		.loc 1 46 5 is_stmt 1 view .LVU6
+  52              		.loc 1 46 28 is_stmt 0 view .LVU7
+  53 0014 0A4A     		ldr	r2, .L4+8
+  54 0016 1388     		ldrh	r3, [r2]
+  55 0018 0A49     		ldr	r1, .L4+12
+  56 001a CB5C     		ldrb	r3, [r1, r3]	@ zero_extendqisi2
+  57              		.loc 1 46 18 view .LVU8
+  58 001c 0A49     		ldr	r1, .L4+16
+  59 001e 0B70     		strb	r3, [r1]
+  47:Core/Src/uart.c ****     s_tx_tail    = (uint16_t)((s_tx_tail + 1U) % UART_TX_BUF_SIZE);
+  60              		.loc 1 47 5 is_stmt 1 view .LVU9
+  61              		.loc 1 47 20 is_stmt 0 view .LVU10
+  62 0020 1388     		ldrh	r3, [r2]
+  63 0022 0133     		adds	r3, r3, #1
+  64 0024 C3F30803 		ubfx	r3, r3, #0, #9
+  65              		.loc 1 47 18 view .LVU11
+  66 0028 1380     		strh	r3, [r2]	@ movhi
+  48:Core/Src/uart.c ****     s_tx_busy    = 1U;
+  67              		.loc 1 48 5 is_stmt 1 view .LVU12
+ARM GAS  /tmp/ccc66gAr.s 			page 3
+
+
+  68              		.loc 1 48 18 is_stmt 0 view .LVU13
+  69 002a 0122     		movs	r2, #1
+  70 002c 024B     		ldr	r3, .L4
+  71 002e 1A70     		strb	r2, [r3]
+  49:Core/Src/uart.c **** 
+  50:Core/Src/uart.c ****     HAL_UART_Transmit_IT(&huart2, (uint8_t *)&s_tx_current, 1U);
+  72              		.loc 1 50 5 is_stmt 1 view .LVU14
+  73 0030 0648     		ldr	r0, .L4+20
+  74 0032 FFF7FEFF 		bl	HAL_UART_Transmit_IT
+  75              	.LVL0:
+  76              	.L1:
+  51:Core/Src/uart.c **** }
+  77              		.loc 1 51 1 is_stmt 0 view .LVU15
+  78 0036 08BD     		pop	{r3, pc}
+  79              	.L5:
+  80              		.align	2
+  81              	.L4:
+  82 0038 00000000 		.word	s_tx_busy
+  83 003c 00000000 		.word	s_tx_head
+  84 0040 00000000 		.word	s_tx_tail
+  85 0044 00000000 		.word	s_tx_buf
+  86 0048 00000000 		.word	s_tx_current
+  87 004c 00000000 		.word	huart2
+  88              		.cfi_endproc
+  89              	.LFE268:
+  91              		.section	.text.uart_init,"ax",%progbits
+  92              		.align	1
+  93              		.global	uart_init
+  94              		.syntax unified
+  95              		.thumb
+  96              		.thumb_func
+  98              	uart_init:
+  99              	.LFB269:
+  52:Core/Src/uart.c **** 
+  53:Core/Src/uart.c **** void uart_init(void)
+  54:Core/Src/uart.c **** {
+ 100              		.loc 1 54 1 is_stmt 1 view -0
+ 101              		.cfi_startproc
+ 102              		@ args = 0, pretend = 0, frame = 8
+ 103              		@ frame_needed = 0, uses_anonymous_args = 0
+ 104 0000 00B5     		push	{lr}
+ 105              	.LCFI1:
+ 106              		.cfi_def_cfa_offset 4
+ 107              		.cfi_offset 14, -4
+ 108 0002 83B0     		sub	sp, sp, #12
+ 109              	.LCFI2:
+ 110              		.cfi_def_cfa_offset 16
+  55:Core/Src/uart.c ****     __HAL_RCC_USART2_CLK_ENABLE();
+ 111              		.loc 1 55 5 view .LVU17
+ 112              	.LBB2:
+ 113              		.loc 1 55 5 view .LVU18
+ 114 0004 0023     		movs	r3, #0
+ 115 0006 0193     		str	r3, [sp, #4]
+ 116              		.loc 1 55 5 view .LVU19
+ 117 0008 154A     		ldr	r2, .L10
+ 118 000a 116C     		ldr	r1, [r2, #64]
+ 119 000c 41F40031 		orr	r1, r1, #131072
+ARM GAS  /tmp/ccc66gAr.s 			page 4
+
+
+ 120 0010 1164     		str	r1, [r2, #64]
+ 121              		.loc 1 55 5 view .LVU20
+ 122 0012 126C     		ldr	r2, [r2, #64]
+ 123 0014 02F40032 		and	r2, r2, #131072
+ 124 0018 0192     		str	r2, [sp, #4]
+ 125              		.loc 1 55 5 view .LVU21
+ 126 001a 019A     		ldr	r2, [sp, #4]
+ 127              	.LBE2:
+ 128              		.loc 1 55 5 view .LVU22
+  56:Core/Src/uart.c **** 
+  57:Core/Src/uart.c ****     huart2.Instance        = USART2;
+ 129              		.loc 1 57 5 view .LVU23
+ 130              		.loc 1 57 28 is_stmt 0 view .LVU24
+ 131 001c 1148     		ldr	r0, .L10+4
+ 132 001e 124A     		ldr	r2, .L10+8
+ 133 0020 0260     		str	r2, [r0]
+  58:Core/Src/uart.c ****     huart2.Init.BaudRate   = 115200U;   /* velocidad estandar; el ST-LINK
+ 134              		.loc 1 58 5 is_stmt 1 view .LVU25
+ 135              		.loc 1 58 28 is_stmt 0 view .LVU26
+ 136 0022 4FF4E132 		mov	r2, #115200
+ 137 0026 4260     		str	r2, [r0, #4]
+  59:Core/Src/uart.c ****                                     admite hasta 1 Mbaudio */
+  60:Core/Src/uart.c ****     huart2.Init.WordLength = UART_WORDLENGTH_8B;  /* 8 bits de datos.
+ 138              		.loc 1 60 5 is_stmt 1 view .LVU27
+ 139              		.loc 1 60 28 is_stmt 0 view .LVU28
+ 140 0028 8360     		str	r3, [r0, #8]
+  61:Core/Src/uart.c ****                                     Alternativa: 9B, usada cuando se anade
+  62:Core/Src/uart.c ****                                     bit de paridad y se quieren 8 datos */
+  63:Core/Src/uart.c ****     huart2.Init.StopBits   = UART_STOPBITS_1;
+ 141              		.loc 1 63 5 is_stmt 1 view .LVU29
+ 142              		.loc 1 63 28 is_stmt 0 view .LVU30
+ 143 002a C360     		str	r3, [r0, #12]
+  64:Core/Src/uart.c ****     huart2.Init.Parity     = UART_PARITY_NONE;
+ 144              		.loc 1 64 5 is_stmt 1 view .LVU31
+ 145              		.loc 1 64 28 is_stmt 0 view .LVU32
+ 146 002c 0361     		str	r3, [r0, #16]
+  65:Core/Src/uart.c ****     huart2.Init.Mode       = UART_MODE_TX_RX;     /* bidireccional */
+ 147              		.loc 1 65 5 is_stmt 1 view .LVU33
+ 148              		.loc 1 65 28 is_stmt 0 view .LVU34
+ 149 002e 0C22     		movs	r2, #12
+ 150 0030 4261     		str	r2, [r0, #20]
+  66:Core/Src/uart.c ****     huart2.Init.HwFlowCtl  = UART_HWCONTROL_NONE; /* sin RTS/CTS   */
+ 151              		.loc 1 66 5 is_stmt 1 view .LVU35
+ 152              		.loc 1 66 28 is_stmt 0 view .LVU36
+ 153 0032 8361     		str	r3, [r0, #24]
+  67:Core/Src/uart.c ****     huart2.Init.OverSampling = UART_OVERSAMPLING_16;
+ 154              		.loc 1 67 5 is_stmt 1 view .LVU37
+ 155              		.loc 1 67 30 is_stmt 0 view .LVU38
+ 156 0034 C361     		str	r3, [r0, #28]
+  68:Core/Src/uart.c ****                                     /* 16 muestras por bit: mayor inmunidad
+  69:Core/Src/uart.c ****                                        al ruido. OVERSAMPLING_8 permitiria
+  70:Core/Src/uart.c ****                                        doblar la velocidad maxima */
+  71:Core/Src/uart.c **** 
+  72:Core/Src/uart.c ****     if (HAL_UART_Init(&huart2) != HAL_OK) {
+ 157              		.loc 1 72 5 is_stmt 1 view .LVU39
+ 158              		.loc 1 72 9 is_stmt 0 view .LVU40
+ 159 0036 FFF7FEFF 		bl	HAL_UART_Init
+ARM GAS  /tmp/ccc66gAr.s 			page 5
+
+
+ 160              	.LVL1:
+ 161              		.loc 1 72 8 discriminator 1 view .LVU41
+ 162 003a 70B9     		cbnz	r0, .L9
+ 163              	.L7:
+  73:Core/Src/uart.c ****         Error_Handler();
+  74:Core/Src/uart.c ****     }
+  75:Core/Src/uart.c **** 
+  76:Core/Src/uart.c ****     /* Prioridad 5: la mas alta de los perifericos del proyecto, para no
+  77:Core/Src/uart.c ****        perder caracteres si coinciden varias interrupciones. */
+  78:Core/Src/uart.c ****     HAL_NVIC_SetPriority(USART2_IRQn, 5, 0);
+ 164              		.loc 1 78 5 is_stmt 1 view .LVU42
+ 165 003c 0022     		movs	r2, #0
+ 166 003e 0521     		movs	r1, #5
+ 167 0040 2620     		movs	r0, #38
+ 168 0042 FFF7FEFF 		bl	HAL_NVIC_SetPriority
+ 169              	.LVL2:
+  79:Core/Src/uart.c ****     HAL_NVIC_EnableIRQ(USART2_IRQn);
+ 170              		.loc 1 79 5 view .LVU43
+ 171 0046 2620     		movs	r0, #38
+ 172 0048 FFF7FEFF 		bl	HAL_NVIC_EnableIRQ
+ 173              	.LVL3:
+  80:Core/Src/uart.c **** 
+  81:Core/Src/uart.c ****     /* Arma la primera recepcion. Sin esta llamada no se genera ninguna
+  82:Core/Src/uart.c ****        interrupcion de recepcion. */
+  83:Core/Src/uart.c ****     HAL_UART_Receive_IT(&huart2, (uint8_t *)&s_rx_byte, 1U);
+ 174              		.loc 1 83 5 view .LVU44
+ 175 004c 0122     		movs	r2, #1
+ 176 004e 0749     		ldr	r1, .L10+12
+ 177 0050 0448     		ldr	r0, .L10+4
+ 178 0052 FFF7FEFF 		bl	HAL_UART_Receive_IT
+ 179              	.LVL4:
+  84:Core/Src/uart.c **** }
+ 180              		.loc 1 84 1 is_stmt 0 view .LVU45
+ 181 0056 03B0     		add	sp, sp, #12
+ 182              	.LCFI3:
+ 183              		.cfi_remember_state
+ 184              		.cfi_def_cfa_offset 4
+ 185              		@ sp needed
+ 186 0058 00BD     		pop	{pc}
+ 187              	.L9:
+ 188              	.LCFI4:
+ 189              		.cfi_restore_state
+  73:Core/Src/uart.c ****     }
+ 190              		.loc 1 73 9 is_stmt 1 view .LVU46
+ 191 005a FFF7FEFF 		bl	Error_Handler
+ 192              	.LVL5:
+ 193 005e EDE7     		b	.L7
+ 194              	.L11:
+ 195              		.align	2
+ 196              	.L10:
+ 197 0060 00380240 		.word	1073887232
+ 198 0064 00000000 		.word	huart2
+ 199 0068 00440040 		.word	1073759232
+ 200 006c 00000000 		.word	s_rx_byte
+ 201              		.cfi_endproc
+ 202              	.LFE269:
+ 204              		.section	.text.uart_send,"ax",%progbits
+ARM GAS  /tmp/ccc66gAr.s 			page 6
+
+
+ 205              		.align	1
+ 206              		.global	uart_send
+ 207              		.syntax unified
+ 208              		.thumb
+ 209              		.thumb_func
+ 211              	uart_send:
+ 212              	.LVL6:
+ 213              	.LFB270:
+  85:Core/Src/uart.c **** 
+  86:Core/Src/uart.c **** /*
+  87:Core/Src/uart.c ****  * uart_send
+  88:Core/Src/uart.c ****  * Copia la cadena al buffer circular y activa la transmision si estaba parada.
+  89:Core/Src/uart.c ****  * No bloquea: si el buffer se llena, los caracteres sobrantes se descartan.
+  90:Core/Src/uart.c ****  */
+  91:Core/Src/uart.c **** void uart_send(const char *s)
+  92:Core/Src/uart.c **** {
+ 214              		.loc 1 92 1 view -0
+ 215              		.cfi_startproc
+ 216              		@ args = 0, pretend = 0, frame = 0
+ 217              		@ frame_needed = 0, uses_anonymous_args = 0
+ 218              		.loc 1 92 1 is_stmt 0 view .LVU48
+ 219 0000 08B5     		push	{r3, lr}
+ 220              	.LCFI5:
+ 221              		.cfi_def_cfa_offset 8
+ 222              		.cfi_offset 3, -8
+ 223              		.cfi_offset 14, -4
+  93:Core/Src/uart.c ****     uint16_t next;
+ 224              		.loc 1 93 5 is_stmt 1 view .LVU49
+  94:Core/Src/uart.c **** 
+  95:Core/Src/uart.c ****     while (*s != '\0') {
+ 225              		.loc 1 95 5 view .LVU50
+ 226              		.loc 1 95 11 is_stmt 0 view .LVU51
+ 227 0002 08E0     		b	.L13
+ 228              	.LVL7:
+ 229              	.L17:
+  96:Core/Src/uart.c ****         next = (uint16_t)((s_tx_head + 1U) % UART_TX_BUF_SIZE);
+  97:Core/Src/uart.c ****         if (next == s_tx_tail) {
+  98:Core/Src/uart.c ****             break;   /* buffer lleno: se descarta el resto */
+  99:Core/Src/uart.c ****         }
+ 100:Core/Src/uart.c ****         s_tx_buf[s_tx_head] = (uint8_t)*s++;
+ 230              		.loc 1 100 9 is_stmt 1 view .LVU52
+ 231              		.loc 1 100 42 is_stmt 0 view .LVU53
+ 232 0004 0130     		adds	r0, r0, #1
+ 233              	.LVL8:
+ 234              		.loc 1 100 17 view .LVU54
+ 235 0006 0B49     		ldr	r1, .L18
+ 236 0008 B1F800C0 		ldrh	ip, [r1]
+ 237              		.loc 1 100 29 view .LVU55
+ 238 000c DFF82CE0 		ldr	lr, .L18+8
+ 239 0010 0EF80C20 		strb	r2, [lr, ip]
+ 101:Core/Src/uart.c ****         s_tx_head = next;
+ 240              		.loc 1 101 9 is_stmt 1 view .LVU56
+ 241              		.loc 1 101 19 is_stmt 0 view .LVU57
+ 242 0014 0B80     		strh	r3, [r1]	@ movhi
+ 243              	.LVL9:
+ 244              	.L13:
+  95:Core/Src/uart.c ****         next = (uint16_t)((s_tx_head + 1U) % UART_TX_BUF_SIZE);
+ARM GAS  /tmp/ccc66gAr.s 			page 7
+
+
+ 245              		.loc 1 95 15 is_stmt 1 discriminator 1 view .LVU58
+  95:Core/Src/uart.c ****         next = (uint16_t)((s_tx_head + 1U) % UART_TX_BUF_SIZE);
+ 246              		.loc 1 95 12 is_stmt 0 discriminator 1 view .LVU59
+ 247 0016 0278     		ldrb	r2, [r0]	@ zero_extendqisi2
+  95:Core/Src/uart.c ****         next = (uint16_t)((s_tx_head + 1U) % UART_TX_BUF_SIZE);
+ 248              		.loc 1 95 15 discriminator 1 view .LVU60
+ 249 0018 42B1     		cbz	r2, .L14
+  96:Core/Src/uart.c ****         next = (uint16_t)((s_tx_head + 1U) % UART_TX_BUF_SIZE);
+ 250              		.loc 1 96 9 is_stmt 1 view .LVU61
+  96:Core/Src/uart.c ****         next = (uint16_t)((s_tx_head + 1U) % UART_TX_BUF_SIZE);
+ 251              		.loc 1 96 16 is_stmt 0 view .LVU62
+ 252 001a 064B     		ldr	r3, .L18
+ 253 001c 1B88     		ldrh	r3, [r3]
+ 254 001e 0133     		adds	r3, r3, #1
+  96:Core/Src/uart.c ****         next = (uint16_t)((s_tx_head + 1U) % UART_TX_BUF_SIZE);
+ 255              		.loc 1 96 14 view .LVU63
+ 256 0020 C3F30803 		ubfx	r3, r3, #0, #9
+ 257              	.LVL10:
+  97:Core/Src/uart.c ****             break;   /* buffer lleno: se descarta el resto */
+ 258              		.loc 1 97 9 is_stmt 1 view .LVU64
+  97:Core/Src/uart.c ****             break;   /* buffer lleno: se descarta el resto */
+ 259              		.loc 1 97 18 is_stmt 0 view .LVU65
+ 260 0024 0449     		ldr	r1, .L18+4
+ 261 0026 0988     		ldrh	r1, [r1]
+  97:Core/Src/uart.c ****             break;   /* buffer lleno: se descarta el resto */
+ 262              		.loc 1 97 12 view .LVU66
+ 263 0028 9942     		cmp	r1, r3
+ 264 002a EBD1     		bne	.L17
+ 265              	.LVL11:
+ 266              	.L14:
+ 102:Core/Src/uart.c ****     }
+ 103:Core/Src/uart.c ****     uart_start_tx();
+ 267              		.loc 1 103 5 is_stmt 1 view .LVU67
+ 268 002c FFF7FEFF 		bl	uart_start_tx
+ 269              	.LVL12:
+ 104:Core/Src/uart.c **** }
+ 270              		.loc 1 104 1 is_stmt 0 view .LVU68
+ 271 0030 08BD     		pop	{r3, pc}
+ 272              	.L19:
+ 273 0032 00BF     		.align	2
+ 274              	.L18:
+ 275 0034 00000000 		.word	s_tx_head
+ 276 0038 00000000 		.word	s_tx_tail
+ 277 003c 00000000 		.word	s_tx_buf
+ 278              		.cfi_endproc
+ 279              	.LFE270:
+ 281              		.section	.rodata.uart_send_line.str1.4,"aMS",%progbits,1
+ 282              		.align	2
+ 283              	.LC0:
+ 284 0000 0D0A00   		.ascii	"\015\012\000"
+ 285              		.section	.text.uart_send_line,"ax",%progbits
+ 286              		.align	1
+ 287              		.global	uart_send_line
+ 288              		.syntax unified
+ 289              		.thumb
+ 290              		.thumb_func
+ 292              	uart_send_line:
+ARM GAS  /tmp/ccc66gAr.s 			page 8
+
+
+ 293              	.LVL13:
+ 294              	.LFB271:
+ 105:Core/Src/uart.c **** 
+ 106:Core/Src/uart.c **** void uart_send_line(const char *s)
+ 107:Core/Src/uart.c **** {
+ 295              		.loc 1 107 1 is_stmt 1 view -0
+ 296              		.cfi_startproc
+ 297              		@ args = 0, pretend = 0, frame = 0
+ 298              		@ frame_needed = 0, uses_anonymous_args = 0
+ 299              		.loc 1 107 1 is_stmt 0 view .LVU70
+ 300 0000 08B5     		push	{r3, lr}
+ 301              	.LCFI6:
+ 302              		.cfi_def_cfa_offset 8
+ 303              		.cfi_offset 3, -8
+ 304              		.cfi_offset 14, -4
+ 108:Core/Src/uart.c ****     uart_send(s);
+ 305              		.loc 1 108 5 is_stmt 1 view .LVU71
+ 306 0002 FFF7FEFF 		bl	uart_send
+ 307              	.LVL14:
+ 109:Core/Src/uart.c ****     uart_send("\r\n");
+ 308              		.loc 1 109 5 view .LVU72
+ 309 0006 0248     		ldr	r0, .L22
+ 310 0008 FFF7FEFF 		bl	uart_send
+ 311              	.LVL15:
+ 110:Core/Src/uart.c **** }
+ 312              		.loc 1 110 1 is_stmt 0 view .LVU73
+ 313 000c 08BD     		pop	{r3, pc}
+ 314              	.L23:
+ 315 000e 00BF     		.align	2
+ 316              	.L22:
+ 317 0010 00000000 		.word	.LC0
+ 318              		.cfi_endproc
+ 319              	.LFE271:
+ 321              		.section	.text.HAL_UART_TxCpltCallback,"ax",%progbits
+ 322              		.align	1
+ 323              		.global	HAL_UART_TxCpltCallback
+ 324              		.syntax unified
+ 325              		.thumb
+ 326              		.thumb_func
+ 328              	HAL_UART_TxCpltCallback:
+ 329              	.LVL16:
+ 330              	.LFB272:
+ 111:Core/Src/uart.c **** 
+ 112:Core/Src/uart.c **** /*
+ 113:Core/Src/uart.c ****  * HAL_UART_TxCpltCallback
+ 114:Core/Src/uart.c ****  * La HAL la invoca al terminar de transmitir el byte en curso.
+ 115:Core/Src/uart.c ****  * Encadena el siguiente byte pendiente del buffer circular.
+ 116:Core/Src/uart.c ****  */
+ 117:Core/Src/uart.c **** void HAL_UART_TxCpltCallback(UART_HandleTypeDef *huart)
+ 118:Core/Src/uart.c **** {
+ 331              		.loc 1 118 1 is_stmt 1 view -0
+ 332              		.cfi_startproc
+ 333              		@ args = 0, pretend = 0, frame = 0
+ 334              		@ frame_needed = 0, uses_anonymous_args = 0
+ 335              		.loc 1 118 1 is_stmt 0 view .LVU75
+ 336 0000 08B5     		push	{r3, lr}
+ 337              	.LCFI7:
+ARM GAS  /tmp/ccc66gAr.s 			page 9
+
+
+ 338              		.cfi_def_cfa_offset 8
+ 339              		.cfi_offset 3, -8
+ 340              		.cfi_offset 14, -4
+ 119:Core/Src/uart.c ****     if (huart->Instance != USART2) {
+ 341              		.loc 1 119 5 is_stmt 1 view .LVU76
+ 342              		.loc 1 119 14 is_stmt 0 view .LVU77
+ 343 0002 0268     		ldr	r2, [r0]
+ 344              		.loc 1 119 8 view .LVU78
+ 345 0004 044B     		ldr	r3, .L28
+ 346 0006 9A42     		cmp	r2, r3
+ 347 0008 00D0     		beq	.L27
+ 348              	.LVL17:
+ 349              	.L24:
+ 120:Core/Src/uart.c ****         return;
+ 121:Core/Src/uart.c ****     }
+ 122:Core/Src/uart.c ****     s_tx_busy = 0U;
+ 123:Core/Src/uart.c ****     uart_start_tx();
+ 124:Core/Src/uart.c **** }
+ 350              		.loc 1 124 1 view .LVU79
+ 351 000a 08BD     		pop	{r3, pc}
+ 352              	.LVL18:
+ 353              	.L27:
+ 122:Core/Src/uart.c ****     uart_start_tx();
+ 354              		.loc 1 122 5 is_stmt 1 view .LVU80
+ 122:Core/Src/uart.c ****     uart_start_tx();
+ 355              		.loc 1 122 15 is_stmt 0 view .LVU81
+ 356 000c 034B     		ldr	r3, .L28+4
+ 357 000e 0022     		movs	r2, #0
+ 358 0010 1A70     		strb	r2, [r3]
+ 123:Core/Src/uart.c **** }
+ 359              		.loc 1 123 5 is_stmt 1 view .LVU82
+ 360 0012 FFF7FEFF 		bl	uart_start_tx
+ 361              	.LVL19:
+ 123:Core/Src/uart.c **** }
+ 362              		.loc 1 123 5 is_stmt 0 view .LVU83
+ 363 0016 F8E7     		b	.L24
+ 364              	.L29:
+ 365              		.align	2
+ 366              	.L28:
+ 367 0018 00440040 		.word	1073759232
+ 368 001c 00000000 		.word	s_tx_busy
+ 369              		.cfi_endproc
+ 370              	.LFE272:
+ 372              		.section	.text.HAL_UART_RxCpltCallback,"ax",%progbits
+ 373              		.align	1
+ 374              		.global	HAL_UART_RxCpltCallback
+ 375              		.syntax unified
+ 376              		.thumb
+ 377              		.thumb_func
+ 379              	HAL_UART_RxCpltCallback:
+ 380              	.LVL20:
+ 381              	.LFB273:
+ 125:Core/Src/uart.c **** 
+ 126:Core/Src/uart.c **** /*
+ 127:Core/Src/uart.c ****  * HAL_UART_RxCpltCallback
+ 128:Core/Src/uart.c ****  * La HAL la invoca al recibir un caracter. Traduce el caracter a un evento
+ 129:Core/Src/uart.c ****  * de la maquina de estados y vuelve a armar la recepcion.
+ARM GAS  /tmp/ccc66gAr.s 			page 10
+
+
+ 130:Core/Src/uart.c ****  *
+ 131:Core/Src/uart.c ****  * Se aceptan mayusculas y minusculas para mayor comodidad del operador.
+ 132:Core/Src/uart.c ****  */
+ 133:Core/Src/uart.c **** void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+ 134:Core/Src/uart.c **** {
+ 382              		.loc 1 134 1 is_stmt 1 view -0
+ 383              		.cfi_startproc
+ 384              		@ args = 0, pretend = 0, frame = 0
+ 385              		@ frame_needed = 0, uses_anonymous_args = 0
+ 386              		.loc 1 134 1 is_stmt 0 view .LVU85
+ 387 0000 08B5     		push	{r3, lr}
+ 388              	.LCFI8:
+ 389              		.cfi_def_cfa_offset 8
+ 390              		.cfi_offset 3, -8
+ 391              		.cfi_offset 14, -4
+ 135:Core/Src/uart.c ****     uint8_t c;
+ 392              		.loc 1 135 5 is_stmt 1 view .LVU86
+ 136:Core/Src/uart.c **** 
+ 137:Core/Src/uart.c ****     if (huart->Instance != USART2) {
+ 393              		.loc 1 137 5 view .LVU87
+ 394              		.loc 1 137 14 is_stmt 0 view .LVU88
+ 395 0002 0268     		ldr	r2, [r0]
+ 396              		.loc 1 137 8 view .LVU89
+ 397 0004 314B     		ldr	r3, .L48
+ 398 0006 9A42     		cmp	r2, r3
+ 399 0008 00D0     		beq	.L47
+ 400              	.LVL21:
+ 401              	.L30:
+ 138:Core/Src/uart.c ****         return;
+ 139:Core/Src/uart.c ****     }
+ 140:Core/Src/uart.c **** 
+ 141:Core/Src/uart.c ****     c = s_rx_byte;
+ 142:Core/Src/uart.c **** 
+ 143:Core/Src/uart.c ****     switch (c) {
+ 144:Core/Src/uart.c ****     case 'c': case 'C': fsm_post_event(EV_CMD_CLEAR);   break;
+ 145:Core/Src/uart.c ****     case 'x': case 'X': fsm_post_event(EV_CMD_MODE_X);  break;
+ 146:Core/Src/uart.c ****     case 'y': case 'Y': fsm_post_event(EV_CMD_MODE_Y);  break;
+ 147:Core/Src/uart.c ****     case '+':           fsm_post_event(EV_CMD_INC);     break;
+ 148:Core/Src/uart.c ****     case '-':           fsm_post_event(EV_CMD_DEC);     break;
+ 149:Core/Src/uart.c ****     case 'h': case 'H': fsm_post_event(EV_CMD_MCO_HSI); break;
+ 150:Core/Src/uart.c ****     case 'l': case 'L': fsm_post_event(EV_CMD_MCO_LSE); break;
+ 151:Core/Src/uart.c ****     case 'p': case 'P': fsm_post_event(EV_CMD_MCO_PLL); break;
+ 152:Core/Src/uart.c ****     case 'd': case 'D': fsm_post_event(EV_CMD_DIAG);    break;
+ 153:Core/Src/uart.c ****     case 's': case 'S': fsm_post_event(EV_CMD_SCAN);    break;
+ 154:Core/Src/uart.c ****     case '?':           fsm_post_event(EV_CMD_HELP);    break;
+ 155:Core/Src/uart.c ****     default:            /* cualquier otro caracter se ignora */    break;
+ 156:Core/Src/uart.c ****     }
+ 157:Core/Src/uart.c **** 
+ 158:Core/Src/uart.c ****     /* Rearma la recepcion del siguiente byte. Omitir esta llamada deja la
+ 159:Core/Src/uart.c ****        UART sorda tras el primer caracter: es el error mas frecuente al
+ 160:Core/Src/uart.c ****        trabajar con HAL_UART_Receive_IT. */
+ 161:Core/Src/uart.c ****     HAL_UART_Receive_IT(&huart2, (uint8_t *)&s_rx_byte, 1U);
+ 162:Core/Src/uart.c **** }
+ 402              		.loc 1 162 1 view .LVU90
+ 403 000a 08BD     		pop	{r3, pc}
+ 404              	.LVL22:
+ 405              	.L47:
+ARM GAS  /tmp/ccc66gAr.s 			page 11
+
+
+ 141:Core/Src/uart.c **** 
+ 406              		.loc 1 141 5 is_stmt 1 view .LVU91
+ 141:Core/Src/uart.c **** 
+ 407              		.loc 1 141 7 is_stmt 0 view .LVU92
+ 408 000c 304B     		ldr	r3, .L48+4
+ 409 000e 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 410              	.LVL23:
+ 143:Core/Src/uart.c ****     case 'c': case 'C': fsm_post_event(EV_CMD_CLEAR);   break;
+ 411              		.loc 1 143 5 is_stmt 1 view .LVU93
+ 412 0010 2B3B     		subs	r3, r3, #43
+ 413              	.LVL24:
+ 143:Core/Src/uart.c ****     case 'c': case 'C': fsm_post_event(EV_CMD_CLEAR);   break;
+ 414              		.loc 1 143 5 is_stmt 0 view .LVU94
+ 415 0012 4E2B     		cmp	r3, #78
+ 416 0014 2CD8     		bhi	.L32
+ 417 0016 DFE803F0 		tbb	[pc, r3]
+ 418              	.L34:
+ 419 001a 39       		.byte	(.L44-.L34)/2
+ 420 001b 2B       		.byte	(.L32-.L34)/2
+ 421 001c 3D       		.byte	(.L43-.L34)/2
+ 422 001d 2B       		.byte	(.L32-.L34)/2
+ 423 001e 2B       		.byte	(.L32-.L34)/2
+ 424 001f 2B       		.byte	(.L32-.L34)/2
+ 425 0020 2B       		.byte	(.L32-.L34)/2
+ 426 0021 2B       		.byte	(.L32-.L34)/2
+ 427 0022 2B       		.byte	(.L32-.L34)/2
+ 428 0023 2B       		.byte	(.L32-.L34)/2
+ 429 0024 2B       		.byte	(.L32-.L34)/2
+ 430 0025 2B       		.byte	(.L32-.L34)/2
+ 431 0026 2B       		.byte	(.L32-.L34)/2
+ 432 0027 2B       		.byte	(.L32-.L34)/2
+ 433 0028 2B       		.byte	(.L32-.L34)/2
+ 434 0029 2B       		.byte	(.L32-.L34)/2
+ 435 002a 2B       		.byte	(.L32-.L34)/2
+ 436 002b 2B       		.byte	(.L32-.L34)/2
+ 437 002c 2B       		.byte	(.L32-.L34)/2
+ 438 002d 2B       		.byte	(.L32-.L34)/2
+ 439 002e 55       		.byte	(.L42-.L34)/2
+ 440 002f 2B       		.byte	(.L32-.L34)/2
+ 441 0030 2B       		.byte	(.L32-.L34)/2
+ 442 0031 2B       		.byte	(.L32-.L34)/2
+ 443 0032 28       		.byte	(.L41-.L34)/2
+ 444 0033 4D       		.byte	(.L40-.L34)/2
+ 445 0034 2B       		.byte	(.L32-.L34)/2
+ 446 0035 2B       		.byte	(.L32-.L34)/2
+ 447 0036 2B       		.byte	(.L32-.L34)/2
+ 448 0037 41       		.byte	(.L39-.L34)/2
+ 449 0038 2B       		.byte	(.L32-.L34)/2
+ 450 0039 2B       		.byte	(.L32-.L34)/2
+ 451 003a 2B       		.byte	(.L32-.L34)/2
+ 452 003b 45       		.byte	(.L38-.L34)/2
+ 453 003c 2B       		.byte	(.L32-.L34)/2
+ 454 003d 2B       		.byte	(.L32-.L34)/2
+ 455 003e 2B       		.byte	(.L32-.L34)/2
+ 456 003f 49       		.byte	(.L37-.L34)/2
+ 457 0040 2B       		.byte	(.L32-.L34)/2
+ 458 0041 2B       		.byte	(.L32-.L34)/2
+ARM GAS  /tmp/ccc66gAr.s 			page 12
+
+
+ 459 0042 51       		.byte	(.L36-.L34)/2
+ 460 0043 2B       		.byte	(.L32-.L34)/2
+ 461 0044 2B       		.byte	(.L32-.L34)/2
+ 462 0045 2B       		.byte	(.L32-.L34)/2
+ 463 0046 2B       		.byte	(.L32-.L34)/2
+ 464 0047 31       		.byte	(.L35-.L34)/2
+ 465 0048 35       		.byte	(.L33-.L34)/2
+ 466 0049 2B       		.byte	(.L32-.L34)/2
+ 467 004a 2B       		.byte	(.L32-.L34)/2
+ 468 004b 2B       		.byte	(.L32-.L34)/2
+ 469 004c 2B       		.byte	(.L32-.L34)/2
+ 470 004d 2B       		.byte	(.L32-.L34)/2
+ 471 004e 2B       		.byte	(.L32-.L34)/2
+ 472 004f 2B       		.byte	(.L32-.L34)/2
+ 473 0050 2B       		.byte	(.L32-.L34)/2
+ 474 0051 2B       		.byte	(.L32-.L34)/2
+ 475 0052 28       		.byte	(.L41-.L34)/2
+ 476 0053 4D       		.byte	(.L40-.L34)/2
+ 477 0054 2B       		.byte	(.L32-.L34)/2
+ 478 0055 2B       		.byte	(.L32-.L34)/2
+ 479 0056 2B       		.byte	(.L32-.L34)/2
+ 480 0057 41       		.byte	(.L39-.L34)/2
+ 481 0058 2B       		.byte	(.L32-.L34)/2
+ 482 0059 2B       		.byte	(.L32-.L34)/2
+ 483 005a 2B       		.byte	(.L32-.L34)/2
+ 484 005b 45       		.byte	(.L38-.L34)/2
+ 485 005c 2B       		.byte	(.L32-.L34)/2
+ 486 005d 2B       		.byte	(.L32-.L34)/2
+ 487 005e 2B       		.byte	(.L32-.L34)/2
+ 488 005f 49       		.byte	(.L37-.L34)/2
+ 489 0060 2B       		.byte	(.L32-.L34)/2
+ 490 0061 2B       		.byte	(.L32-.L34)/2
+ 491 0062 51       		.byte	(.L36-.L34)/2
+ 492 0063 2B       		.byte	(.L32-.L34)/2
+ 493 0064 2B       		.byte	(.L32-.L34)/2
+ 494 0065 2B       		.byte	(.L32-.L34)/2
+ 495 0066 2B       		.byte	(.L32-.L34)/2
+ 496 0067 31       		.byte	(.L35-.L34)/2
+ 497 0068 35       		.byte	(.L33-.L34)/2
+ 498 0069 00       		.p2align 1
+ 499              	.L41:
+ 144:Core/Src/uart.c ****     case 'x': case 'X': fsm_post_event(EV_CMD_MODE_X);  break;
+ 500              		.loc 1 144 25 is_stmt 1 view .LVU95
+ 501 006a 0120     		movs	r0, #1
+ 502              	.LVL25:
+ 144:Core/Src/uart.c ****     case 'x': case 'X': fsm_post_event(EV_CMD_MODE_X);  break;
+ 503              		.loc 1 144 25 is_stmt 0 view .LVU96
+ 504 006c FFF7FEFF 		bl	fsm_post_event
+ 505              	.LVL26:
+ 144:Core/Src/uart.c ****     case 'x': case 'X': fsm_post_event(EV_CMD_MODE_X);  break;
+ 506              		.loc 1 144 57 is_stmt 1 discriminator 1 view .LVU97
+ 507              	.L32:
+ 161:Core/Src/uart.c **** }
+ 508              		.loc 1 161 5 view .LVU98
+ 509 0070 0122     		movs	r2, #1
+ 510 0072 1749     		ldr	r1, .L48+4
+ 511 0074 1748     		ldr	r0, .L48+8
+ARM GAS  /tmp/ccc66gAr.s 			page 13
+
+
+ 512 0076 FFF7FEFF 		bl	HAL_UART_Receive_IT
+ 513              	.LVL27:
+ 514 007a C6E7     		b	.L30
+ 515              	.LVL28:
+ 516              	.L35:
+ 145:Core/Src/uart.c ****     case 'y': case 'Y': fsm_post_event(EV_CMD_MODE_Y);  break;
+ 517              		.loc 1 145 25 view .LVU99
+ 518 007c 0220     		movs	r0, #2
+ 519              	.LVL29:
+ 145:Core/Src/uart.c ****     case 'y': case 'Y': fsm_post_event(EV_CMD_MODE_Y);  break;
+ 520              		.loc 1 145 25 is_stmt 0 view .LVU100
+ 521 007e FFF7FEFF 		bl	fsm_post_event
+ 522              	.LVL30:
+ 145:Core/Src/uart.c ****     case 'y': case 'Y': fsm_post_event(EV_CMD_MODE_Y);  break;
+ 523              		.loc 1 145 57 is_stmt 1 discriminator 1 view .LVU101
+ 524 0082 F5E7     		b	.L32
+ 525              	.LVL31:
+ 526              	.L33:
+ 146:Core/Src/uart.c ****     case '+':           fsm_post_event(EV_CMD_INC);     break;
+ 527              		.loc 1 146 25 view .LVU102
+ 528 0084 0320     		movs	r0, #3
+ 529              	.LVL32:
+ 146:Core/Src/uart.c ****     case '+':           fsm_post_event(EV_CMD_INC);     break;
+ 530              		.loc 1 146 25 is_stmt 0 view .LVU103
+ 531 0086 FFF7FEFF 		bl	fsm_post_event
+ 532              	.LVL33:
+ 146:Core/Src/uart.c ****     case '+':           fsm_post_event(EV_CMD_INC);     break;
+ 533              		.loc 1 146 57 is_stmt 1 discriminator 1 view .LVU104
+ 534 008a F1E7     		b	.L32
+ 535              	.LVL34:
+ 536              	.L44:
+ 147:Core/Src/uart.c ****     case '-':           fsm_post_event(EV_CMD_DEC);     break;
+ 537              		.loc 1 147 25 view .LVU105
+ 538 008c 0420     		movs	r0, #4
+ 539              	.LVL35:
+ 147:Core/Src/uart.c ****     case '-':           fsm_post_event(EV_CMD_DEC);     break;
+ 540              		.loc 1 147 25 is_stmt 0 view .LVU106
+ 541 008e FFF7FEFF 		bl	fsm_post_event
+ 542              	.LVL36:
+ 147:Core/Src/uart.c ****     case '-':           fsm_post_event(EV_CMD_DEC);     break;
+ 543              		.loc 1 147 57 is_stmt 1 discriminator 1 view .LVU107
+ 544 0092 EDE7     		b	.L32
+ 545              	.LVL37:
+ 546              	.L43:
+ 148:Core/Src/uart.c ****     case 'h': case 'H': fsm_post_event(EV_CMD_MCO_HSI); break;
+ 547              		.loc 1 148 25 view .LVU108
+ 548 0094 0520     		movs	r0, #5
+ 549              	.LVL38:
+ 148:Core/Src/uart.c ****     case 'h': case 'H': fsm_post_event(EV_CMD_MCO_HSI); break;
+ 550              		.loc 1 148 25 is_stmt 0 view .LVU109
+ 551 0096 FFF7FEFF 		bl	fsm_post_event
+ 552              	.LVL39:
+ 148:Core/Src/uart.c ****     case 'h': case 'H': fsm_post_event(EV_CMD_MCO_HSI); break;
+ 553              		.loc 1 148 57 is_stmt 1 discriminator 1 view .LVU110
+ 554 009a E9E7     		b	.L32
+ 555              	.LVL40:
+ 556              	.L39:
+ARM GAS  /tmp/ccc66gAr.s 			page 14
+
+
+ 149:Core/Src/uart.c ****     case 'l': case 'L': fsm_post_event(EV_CMD_MCO_LSE); break;
+ 557              		.loc 1 149 25 view .LVU111
+ 558 009c 0620     		movs	r0, #6
+ 559              	.LVL41:
+ 149:Core/Src/uart.c ****     case 'l': case 'L': fsm_post_event(EV_CMD_MCO_LSE); break;
+ 560              		.loc 1 149 25 is_stmt 0 view .LVU112
+ 561 009e FFF7FEFF 		bl	fsm_post_event
+ 562              	.LVL42:
+ 149:Core/Src/uart.c ****     case 'l': case 'L': fsm_post_event(EV_CMD_MCO_LSE); break;
+ 563              		.loc 1 149 57 is_stmt 1 discriminator 1 view .LVU113
+ 564 00a2 E5E7     		b	.L32
+ 565              	.LVL43:
+ 566              	.L38:
+ 150:Core/Src/uart.c ****     case 'p': case 'P': fsm_post_event(EV_CMD_MCO_PLL); break;
+ 567              		.loc 1 150 25 view .LVU114
+ 568 00a4 0720     		movs	r0, #7
+ 569              	.LVL44:
+ 150:Core/Src/uart.c ****     case 'p': case 'P': fsm_post_event(EV_CMD_MCO_PLL); break;
+ 570              		.loc 1 150 25 is_stmt 0 view .LVU115
+ 571 00a6 FFF7FEFF 		bl	fsm_post_event
+ 572              	.LVL45:
+ 150:Core/Src/uart.c ****     case 'p': case 'P': fsm_post_event(EV_CMD_MCO_PLL); break;
+ 573              		.loc 1 150 57 is_stmt 1 discriminator 1 view .LVU116
+ 574 00aa E1E7     		b	.L32
+ 575              	.LVL46:
+ 576              	.L37:
+ 151:Core/Src/uart.c ****     case 'd': case 'D': fsm_post_event(EV_CMD_DIAG);    break;
+ 577              		.loc 1 151 25 view .LVU117
+ 578 00ac 0820     		movs	r0, #8
+ 579              	.LVL47:
+ 151:Core/Src/uart.c ****     case 'd': case 'D': fsm_post_event(EV_CMD_DIAG);    break;
+ 580              		.loc 1 151 25 is_stmt 0 view .LVU118
+ 581 00ae FFF7FEFF 		bl	fsm_post_event
+ 582              	.LVL48:
+ 151:Core/Src/uart.c ****     case 'd': case 'D': fsm_post_event(EV_CMD_DIAG);    break;
+ 583              		.loc 1 151 57 is_stmt 1 discriminator 1 view .LVU119
+ 584 00b2 DDE7     		b	.L32
+ 585              	.LVL49:
+ 586              	.L40:
+ 152:Core/Src/uart.c ****     case 's': case 'S': fsm_post_event(EV_CMD_SCAN);    break;
+ 587              		.loc 1 152 25 view .LVU120
+ 588 00b4 0A20     		movs	r0, #10
+ 589              	.LVL50:
+ 152:Core/Src/uart.c ****     case 's': case 'S': fsm_post_event(EV_CMD_SCAN);    break;
+ 590              		.loc 1 152 25 is_stmt 0 view .LVU121
+ 591 00b6 FFF7FEFF 		bl	fsm_post_event
+ 592              	.LVL51:
+ 152:Core/Src/uart.c ****     case 's': case 'S': fsm_post_event(EV_CMD_SCAN);    break;
+ 593              		.loc 1 152 57 is_stmt 1 discriminator 1 view .LVU122
+ 594 00ba D9E7     		b	.L32
+ 595              	.LVL52:
+ 596              	.L36:
+ 153:Core/Src/uart.c ****     case '?':           fsm_post_event(EV_CMD_HELP);    break;
+ 597              		.loc 1 153 25 view .LVU123
+ 598 00bc 0B20     		movs	r0, #11
+ 599              	.LVL53:
+ 153:Core/Src/uart.c ****     case '?':           fsm_post_event(EV_CMD_HELP);    break;
+ARM GAS  /tmp/ccc66gAr.s 			page 15
+
+
+ 600              		.loc 1 153 25 is_stmt 0 view .LVU124
+ 601 00be FFF7FEFF 		bl	fsm_post_event
+ 602              	.LVL54:
+ 153:Core/Src/uart.c ****     case '?':           fsm_post_event(EV_CMD_HELP);    break;
+ 603              		.loc 1 153 57 is_stmt 1 discriminator 1 view .LVU125
+ 604 00c2 D5E7     		b	.L32
+ 605              	.LVL55:
+ 606              	.L42:
+ 154:Core/Src/uart.c ****     default:            /* cualquier otro caracter se ignora */    break;
+ 607              		.loc 1 154 25 view .LVU126
+ 608 00c4 0920     		movs	r0, #9
+ 609              	.LVL56:
+ 154:Core/Src/uart.c ****     default:            /* cualquier otro caracter se ignora */    break;
+ 610              		.loc 1 154 25 is_stmt 0 view .LVU127
+ 611 00c6 FFF7FEFF 		bl	fsm_post_event
+ 612              	.LVL57:
+ 154:Core/Src/uart.c ****     default:            /* cualquier otro caracter se ignora */    break;
+ 613              		.loc 1 154 57 is_stmt 1 discriminator 1 view .LVU128
+ 614 00ca D1E7     		b	.L32
+ 615              	.L49:
+ 616              		.align	2
+ 617              	.L48:
+ 618 00cc 00440040 		.word	1073759232
+ 619 00d0 00000000 		.word	s_rx_byte
+ 620 00d4 00000000 		.word	huart2
+ 621              		.cfi_endproc
+ 622              	.LFE273:
+ 624              		.section	.text.HAL_UART_ErrorCallback,"ax",%progbits
+ 625              		.align	1
+ 626              		.global	HAL_UART_ErrorCallback
+ 627              		.syntax unified
+ 628              		.thumb
+ 629              		.thumb_func
+ 631              	HAL_UART_ErrorCallback:
+ 632              	.LVL58:
+ 633              	.LFB274:
+ 163:Core/Src/uart.c **** 
+ 164:Core/Src/uart.c **** /*
+ 165:Core/Src/uart.c ****  * HAL_UART_ErrorCallback
+ 166:Core/Src/uart.c ****  * Se invoca ante errores de trama, ruido, paridad o desbordamiento.
+ 167:Core/Src/uart.c ****  * Rearma la recepcion para que un caracter corrupto no deje la UART muda.
+ 168:Core/Src/uart.c ****  */
+ 169:Core/Src/uart.c **** void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
+ 170:Core/Src/uart.c **** {
+ 634              		.loc 1 170 1 view -0
+ 635              		.cfi_startproc
+ 636              		@ args = 0, pretend = 0, frame = 8
+ 637              		@ frame_needed = 0, uses_anonymous_args = 0
+ 171:Core/Src/uart.c ****     if (huart->Instance == USART2) {
+ 638              		.loc 1 171 5 view .LVU130
+ 639              		.loc 1 171 14 is_stmt 0 view .LVU131
+ 640 0000 0368     		ldr	r3, [r0]
+ 641              		.loc 1 171 8 view .LVU132
+ 642 0002 0A4A     		ldr	r2, .L57
+ 643 0004 9342     		cmp	r3, r2
+ 644 0006 00D0     		beq	.L56
+ 645 0008 7047     		bx	lr
+ARM GAS  /tmp/ccc66gAr.s 			page 16
+
+
+ 646              	.L56:
+ 170:Core/Src/uart.c ****     if (huart->Instance == USART2) {
+ 647              		.loc 1 170 1 view .LVU133
+ 648 000a 00B5     		push	{lr}
+ 649              	.LCFI9:
+ 650              		.cfi_def_cfa_offset 4
+ 651              		.cfi_offset 14, -4
+ 652 000c 83B0     		sub	sp, sp, #12
+ 653              	.LCFI10:
+ 654              		.cfi_def_cfa_offset 16
+ 172:Core/Src/uart.c ****         __HAL_UART_CLEAR_OREFLAG(huart);   /* limpia el error de desbordamiento */
+ 655              		.loc 1 172 9 is_stmt 1 view .LVU134
+ 656              	.LBB3:
+ 657              		.loc 1 172 9 view .LVU135
+ 658 000e 0022     		movs	r2, #0
+ 659 0010 0192     		str	r2, [sp, #4]
+ 660              		.loc 1 172 9 view .LVU136
+ 661 0012 1A68     		ldr	r2, [r3]
+ 662 0014 0192     		str	r2, [sp, #4]
+ 663              		.loc 1 172 9 view .LVU137
+ 664 0016 5B68     		ldr	r3, [r3, #4]
+ 665 0018 0193     		str	r3, [sp, #4]
+ 666              		.loc 1 172 9 view .LVU138
+ 667 001a 019B     		ldr	r3, [sp, #4]
+ 668              	.LBE3:
+ 669              		.loc 1 172 9 view .LVU139
+ 173:Core/Src/uart.c ****         HAL_UART_Receive_IT(&huart2, (uint8_t *)&s_rx_byte, 1U);
+ 670              		.loc 1 173 9 view .LVU140
+ 671 001c 0122     		movs	r2, #1
+ 672 001e 0449     		ldr	r1, .L57+4
+ 673 0020 0448     		ldr	r0, .L57+8
+ 674              	.LVL59:
+ 675              		.loc 1 173 9 is_stmt 0 view .LVU141
+ 676 0022 FFF7FEFF 		bl	HAL_UART_Receive_IT
+ 677              	.LVL60:
+ 174:Core/Src/uart.c ****     }
+ 175:Core/Src/uart.c **** }
+ 678              		.loc 1 175 1 view .LVU142
+ 679 0026 03B0     		add	sp, sp, #12
+ 680              	.LCFI11:
+ 681              		.cfi_def_cfa_offset 4
+ 682              		@ sp needed
+ 683 0028 00BD     		pop	{pc}
+ 684              	.L58:
+ 685 002a 00BF     		.align	2
+ 686              	.L57:
+ 687 002c 00440040 		.word	1073759232
+ 688 0030 00000000 		.word	s_rx_byte
+ 689 0034 00000000 		.word	huart2
+ 690              		.cfi_endproc
+ 691              	.LFE274:
+ 693              		.section	.bss.s_tx_current,"aw",%nobits
+ 696              	s_tx_current:
+ 697 0000 00       		.space	1
+ 698              		.section	.bss.s_tx_busy,"aw",%nobits
+ 701              	s_tx_busy:
+ 702 0000 00       		.space	1
+ARM GAS  /tmp/ccc66gAr.s 			page 17
+
+
+ 703              		.section	.bss.s_tx_tail,"aw",%nobits
+ 704              		.align	1
+ 707              	s_tx_tail:
+ 708 0000 0000     		.space	2
+ 709              		.section	.bss.s_tx_head,"aw",%nobits
+ 710              		.align	1
+ 713              	s_tx_head:
+ 714 0000 0000     		.space	2
+ 715              		.section	.bss.s_tx_buf,"aw",%nobits
+ 716              		.align	2
+ 719              	s_tx_buf:
+ 720 0000 00000000 		.space	512
+ 720      00000000 
+ 720      00000000 
+ 720      00000000 
+ 720      00000000 
+ 721              		.section	.bss.s_rx_byte,"aw",%nobits
+ 724              	s_rx_byte:
+ 725 0000 00       		.space	1
+ 726              		.global	huart2
+ 727              		.section	.bss.huart2,"aw",%nobits
+ 728              		.align	2
+ 731              	huart2:
+ 732 0000 00000000 		.space	72
+ 732      00000000 
+ 732      00000000 
+ 732      00000000 
+ 732      00000000 
+ 733              		.text
+ 734              	.Letext0:
+ 735              		.file 2 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h"
+ 736              		.file 3 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 737              		.file 4 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 738              		.file 5 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+ 739              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h"
+ 740              		.file 7 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h"
+ 741              		.file 8 "Core/Inc/fsm.h"
+ 742              		.file 9 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_cortex.h"
+ 743              		.file 10 "Core/Inc/uart.h"
+ 744              		.file 11 "Core/Inc/main.h"
+ARM GAS  /tmp/ccc66gAr.s 			page 18
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 uart.c
+     /tmp/ccc66gAr.s:21     .text.uart_start_tx:00000000 $t
+     /tmp/ccc66gAr.s:26     .text.uart_start_tx:00000000 uart_start_tx
+     /tmp/ccc66gAr.s:82     .text.uart_start_tx:00000038 $d
+     /tmp/ccc66gAr.s:701    .bss.s_tx_busy:00000000 s_tx_busy
+     /tmp/ccc66gAr.s:713    .bss.s_tx_head:00000000 s_tx_head
+     /tmp/ccc66gAr.s:707    .bss.s_tx_tail:00000000 s_tx_tail
+     /tmp/ccc66gAr.s:719    .bss.s_tx_buf:00000000 s_tx_buf
+     /tmp/ccc66gAr.s:696    .bss.s_tx_current:00000000 s_tx_current
+     /tmp/ccc66gAr.s:731    .bss.huart2:00000000 huart2
+     /tmp/ccc66gAr.s:92     .text.uart_init:00000000 $t
+     /tmp/ccc66gAr.s:98     .text.uart_init:00000000 uart_init
+     /tmp/ccc66gAr.s:197    .text.uart_init:00000060 $d
+     /tmp/ccc66gAr.s:724    .bss.s_rx_byte:00000000 s_rx_byte
+     /tmp/ccc66gAr.s:205    .text.uart_send:00000000 $t
+     /tmp/ccc66gAr.s:211    .text.uart_send:00000000 uart_send
+     /tmp/ccc66gAr.s:275    .text.uart_send:00000034 $d
+     /tmp/ccc66gAr.s:282    .rodata.uart_send_line.str1.4:00000000 $d
+     /tmp/ccc66gAr.s:286    .text.uart_send_line:00000000 $t
+     /tmp/ccc66gAr.s:292    .text.uart_send_line:00000000 uart_send_line
+     /tmp/ccc66gAr.s:317    .text.uart_send_line:00000010 $d
+     /tmp/ccc66gAr.s:322    .text.HAL_UART_TxCpltCallback:00000000 $t
+     /tmp/ccc66gAr.s:328    .text.HAL_UART_TxCpltCallback:00000000 HAL_UART_TxCpltCallback
+     /tmp/ccc66gAr.s:367    .text.HAL_UART_TxCpltCallback:00000018 $d
+     /tmp/ccc66gAr.s:373    .text.HAL_UART_RxCpltCallback:00000000 $t
+     /tmp/ccc66gAr.s:379    .text.HAL_UART_RxCpltCallback:00000000 HAL_UART_RxCpltCallback
+     /tmp/ccc66gAr.s:419    .text.HAL_UART_RxCpltCallback:0000001a $d
+     /tmp/ccc66gAr.s:618    .text.HAL_UART_RxCpltCallback:000000cc $d
+     /tmp/ccc66gAr.s:625    .text.HAL_UART_ErrorCallback:00000000 $t
+     /tmp/ccc66gAr.s:631    .text.HAL_UART_ErrorCallback:00000000 HAL_UART_ErrorCallback
+     /tmp/ccc66gAr.s:687    .text.HAL_UART_ErrorCallback:0000002c $d
+     /tmp/ccc66gAr.s:697    .bss.s_tx_current:00000000 $d
+     /tmp/ccc66gAr.s:702    .bss.s_tx_busy:00000000 $d
+     /tmp/ccc66gAr.s:704    .bss.s_tx_tail:00000000 $d
+     /tmp/ccc66gAr.s:710    .bss.s_tx_head:00000000 $d
+     /tmp/ccc66gAr.s:716    .bss.s_tx_buf:00000000 $d
+     /tmp/ccc66gAr.s:725    .bss.s_rx_byte:00000000 $d
+     /tmp/ccc66gAr.s:728    .bss.huart2:00000000 $d
+     /tmp/ccc66gAr.s:498    .text.HAL_UART_RxCpltCallback:00000069 $d
+     /tmp/ccc66gAr.s:498    .text.HAL_UART_RxCpltCallback:0000006a $t
+
+UNDEFINED SYMBOLS
+HAL_UART_Transmit_IT
+HAL_UART_Init
+HAL_NVIC_SetPriority
+HAL_NVIC_EnableIRQ
+HAL_UART_Receive_IT
+Error_Handler
+fsm_post_event

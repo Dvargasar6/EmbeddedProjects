@@ -1,0 +1,847 @@
+ARM GAS  /tmp/ccChyHBp.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 1
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"adc_joystick.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.file 1 "Core/Src/adc_joystick.c"
+  20              		.section	.text.adc_dir,"ax",%progbits
+  21              		.align	1
+  22              		.syntax unified
+  23              		.thumb
+  24              		.thumb_func
+  26              	adc_dir:
+  27              	.LVL0:
+  28              	.LFB274:
+   1:Core/Src/adc_joystick.c **** /*
+   2:Core/Src/adc_joystick.c ****  * adc_joystick.c
+   3:Core/Src/adc_joystick.c ****  * Adquisicion de los dos ejes del joystick con ADC1 en modo interrupcion.
+   4:Core/Src/adc_joystick.c ****  *
+   5:Core/Src/adc_joystick.c ****  * Estrategia: el ADC del STM32F4 dispone de un unico registro de datos. Para
+   6:Core/Src/adc_joystick.c ****  * leer dos canales sin DMA se convierte de uno en uno y se conmuta el canal
+   7:Core/Src/adc_joystick.c ****  * dentro del callback de fin de conversion:
+   8:Core/Src/adc_joystick.c ****  *
+   9:Core/Src/adc_joystick.c ****  *   TIM4 (100 ms) --> adc_joystick_start() --> conversion canal IN0
+  10:Core/Src/adc_joystick.c ****  *          callback --> guarda VRX, selecciona IN1, arranca de nuevo
+  11:Core/Src/adc_joystick.c ****  *          callback --> guarda VRY, secuencia terminada
+  12:Core/Src/adc_joystick.c ****  *
+  13:Core/Src/adc_joystick.c ****  * De este modo no hay ninguna espera activa: el nucleo solo interviene
+  14:Core/Src/adc_joystick.c ****  * durante los pocos microsegundos de cada interrupcion.
+  15:Core/Src/adc_joystick.c ****  */
+  16:Core/Src/adc_joystick.c **** #include "adc_joystick.h"
+  17:Core/Src/adc_joystick.c **** 
+  18:Core/Src/adc_joystick.c **** ADC_HandleTypeDef hadc1;
+  19:Core/Src/adc_joystick.c **** 
+  20:Core/Src/adc_joystick.c **** /* Indice del canal en curso: 0 = VRX (IN0), 1 = VRY (IN1). volatile porque
+  21:Core/Src/adc_joystick.c ****    se modifica dentro de una interrupcion y se lee fuera de ella. */
+  22:Core/Src/adc_joystick.c **** static volatile uint8_t  s_channel = 0;
+  23:Core/Src/adc_joystick.c **** 
+  24:Core/Src/adc_joystick.c **** /* Ultimas muestras validas de cada eje */
+  25:Core/Src/adc_joystick.c **** static volatile uint16_t s_raw_x = JOY_CENTER;
+  26:Core/Src/adc_joystick.c **** static volatile uint16_t s_raw_y = JOY_CENTER;
+  27:Core/Src/adc_joystick.c **** 
+  28:Core/Src/adc_joystick.c **** /*
+  29:Core/Src/adc_joystick.c ****  * adc_select_channel
+  30:Core/Src/adc_joystick.c ****  * Programa el canal que ocupara el primer puesto de la secuencia de conversion.
+ARM GAS  /tmp/ccChyHBp.s 			page 2
+
+
+  31:Core/Src/adc_joystick.c ****  * Funcion interna (static): no forma parte de la interfaz del modulo.
+  32:Core/Src/adc_joystick.c ****  */
+  33:Core/Src/adc_joystick.c **** static void adc_select_channel(uint8_t idx)
+  34:Core/Src/adc_joystick.c **** {
+  35:Core/Src/adc_joystick.c ****     ADC_ChannelConfTypeDef ch = {0};
+  36:Core/Src/adc_joystick.c **** 
+  37:Core/Src/adc_joystick.c ****     ch.Channel      = (idx == 0) ? ADC_CHANNEL_0 : ADC_CHANNEL_1;
+  38:Core/Src/adc_joystick.c ****     ch.Rank         = 1;   /* primera y unica posicion de la secuencia */
+  39:Core/Src/adc_joystick.c ****     ch.SamplingTime = ADC_SAMPLETIME_84CYCLES;
+  40:Core/Src/adc_joystick.c ****     /* Tiempo de muestreo: 84 ciclos de ADCCLK. Debe ser suficiente para que el
+  41:Core/Src/adc_joystick.c ****        condensador de muestreo se cargue a traves de la impedancia de la fuente.
+  42:Core/Src/adc_joystick.c ****        El potenciometro del joystick ronda los 10 kohm, valor alto, por lo que
+  43:Core/Src/adc_joystick.c ****        se toma un tiempo generoso. Alternativas: 3, 15, 28, 56, 112, 144, 480
+  44:Core/Src/adc_joystick.c ****        ciclos. Un tiempo demasiado corto produce lecturas bajas y ruidosas. */
+  45:Core/Src/adc_joystick.c **** 
+  46:Core/Src/adc_joystick.c ****     if (HAL_ADC_ConfigChannel(&hadc1, &ch) != HAL_OK) {
+  47:Core/Src/adc_joystick.c ****         Error_Handler();
+  48:Core/Src/adc_joystick.c ****     }
+  49:Core/Src/adc_joystick.c **** }
+  50:Core/Src/adc_joystick.c **** 
+  51:Core/Src/adc_joystick.c **** void adc_joystick_init(void)
+  52:Core/Src/adc_joystick.c **** {
+  53:Core/Src/adc_joystick.c ****     __HAL_RCC_ADC1_CLK_ENABLE();   /* reloj del ADC1 (bus APB2) */
+  54:Core/Src/adc_joystick.c **** 
+  55:Core/Src/adc_joystick.c ****     hadc1.Instance = ADC1;
+  56:Core/Src/adc_joystick.c **** 
+  57:Core/Src/adc_joystick.c ****     /* ADCCLK = PCLK2 / 4 = 100 MHz / 4 = 25 MHz.
+  58:Core/Src/adc_joystick.c ****        El maximo admitido por el ADC del F411 es 36 MHz; DIV2 daria 50 MHz y
+  59:Core/Src/adc_joystick.c ****        violaria la especificacion. Alternativas: DIV2, DIV4, DIV6, DIV8. */
+  60:Core/Src/adc_joystick.c ****     hadc1.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV4;
+  61:Core/Src/adc_joystick.c **** 
+  62:Core/Src/adc_joystick.c ****     hadc1.Init.Resolution = ADC_RESOLUTION_12B;  /* 0..4095. Alternativas:
+  63:Core/Src/adc_joystick.c ****                                         10B, 8B, 6B; menor resolucion implica
+  64:Core/Src/adc_joystick.c ****                                         conversiones mas rapidas */
+  65:Core/Src/adc_joystick.c ****     hadc1.Init.ScanConvMode          = DISABLE;  /* un solo canal por secuencia */
+  66:Core/Src/adc_joystick.c ****     hadc1.Init.ContinuousConvMode    = DISABLE;  /* conversion unica bajo demanda */
+  67:Core/Src/adc_joystick.c ****     hadc1.Init.DiscontinuousConvMode = DISABLE;
+  68:Core/Src/adc_joystick.c ****     hadc1.Init.ExternalTrigConv      = ADC_SOFTWARE_START;
+  69:Core/Src/adc_joystick.c ****                                         /* el disparo lo da el software desde
+  70:Core/Src/adc_joystick.c ****                                            la ISR de TIM4. Alternativa: disparo
+  71:Core/Src/adc_joystick.c ****                                            directo por TRGO de un temporizador */
+  72:Core/Src/adc_joystick.c ****     hadc1.Init.ExternalTrigConvEdge  = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  73:Core/Src/adc_joystick.c ****     hadc1.Init.DataAlign             = ADC_DATAALIGN_RIGHT;
+  74:Core/Src/adc_joystick.c ****                                         /* resultado justificado a la derecha:
+  75:Core/Src/adc_joystick.c ****                                            el valor se lee directamente sin
+  76:Core/Src/adc_joystick.c ****                                            desplazamientos */
+  77:Core/Src/adc_joystick.c ****     hadc1.Init.NbrOfConversion       = 1;
+  78:Core/Src/adc_joystick.c ****     hadc1.Init.DMAContinuousRequests = DISABLE;
+  79:Core/Src/adc_joystick.c ****     hadc1.Init.EOCSelection          = ADC_EOC_SINGLE_CONV;
+  80:Core/Src/adc_joystick.c ****                                         /* la bandera EOC se activa al terminar
+  81:Core/Src/adc_joystick.c ****                                            cada conversion individual */
+  82:Core/Src/adc_joystick.c **** 
+  83:Core/Src/adc_joystick.c ****     if (HAL_ADC_Init(&hadc1) != HAL_OK) {
+  84:Core/Src/adc_joystick.c ****         Error_Handler();
+  85:Core/Src/adc_joystick.c ****     }
+  86:Core/Src/adc_joystick.c **** 
+  87:Core/Src/adc_joystick.c ****     adc_select_channel(0);   /* deja seleccionado VRX para la primera lectura */
+ARM GAS  /tmp/ccChyHBp.s 			page 3
+
+
+  88:Core/Src/adc_joystick.c **** 
+  89:Core/Src/adc_joystick.c ****     /* Prioridad 6: por debajo de la UART, por encima de los temporizadores */
+  90:Core/Src/adc_joystick.c ****     HAL_NVIC_SetPriority(ADC_IRQn, 6, 0);
+  91:Core/Src/adc_joystick.c ****     HAL_NVIC_EnableIRQ(ADC_IRQn);
+  92:Core/Src/adc_joystick.c **** }
+  93:Core/Src/adc_joystick.c **** 
+  94:Core/Src/adc_joystick.c **** /*
+  95:Core/Src/adc_joystick.c ****  * adc_joystick_start
+  96:Core/Src/adc_joystick.c ****  * Inicia la secuencia de dos conversiones. Se invoca desde la ISR de TIM4,
+  97:Core/Src/adc_joystick.c ****  * por lo que debe retornar de inmediato.
+  98:Core/Src/adc_joystick.c ****  */
+  99:Core/Src/adc_joystick.c **** void adc_joystick_start(void)
+ 100:Core/Src/adc_joystick.c **** {
+ 101:Core/Src/adc_joystick.c ****     s_channel = 0;              /* la secuencia empieza siempre por VRX */
+ 102:Core/Src/adc_joystick.c ****     adc_select_channel(0);
+ 103:Core/Src/adc_joystick.c ****     HAL_ADC_Start_IT(&hadc1);   /* arranca la conversion con interrupcion EOC */
+ 104:Core/Src/adc_joystick.c **** }
+ 105:Core/Src/adc_joystick.c **** 
+ 106:Core/Src/adc_joystick.c **** /*
+ 107:Core/Src/adc_joystick.c ****  * HAL_ADC_ConvCpltCallback
+ 108:Core/Src/adc_joystick.c ****  * La HAL la invoca desde HAL_ADC_IRQHandler al activarse la bandera EOC.
+ 109:Core/Src/adc_joystick.c ****  * Encadena la segunda conversion sin bloquear el nucleo.
+ 110:Core/Src/adc_joystick.c ****  */
+ 111:Core/Src/adc_joystick.c **** void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef *hadc)
+ 112:Core/Src/adc_joystick.c **** {
+ 113:Core/Src/adc_joystick.c ****     if (hadc->Instance != ADC1) {
+ 114:Core/Src/adc_joystick.c ****         return;   /* proteccion por si se anadiese otro ADC al proyecto */
+ 115:Core/Src/adc_joystick.c ****     }
+ 116:Core/Src/adc_joystick.c **** 
+ 117:Core/Src/adc_joystick.c ****     if (s_channel == 0) {
+ 118:Core/Src/adc_joystick.c ****         s_raw_x   = (uint16_t)HAL_ADC_GetValue(hadc); /* lee y limpia EOC */
+ 119:Core/Src/adc_joystick.c ****         s_channel = 1;
+ 120:Core/Src/adc_joystick.c ****         adc_select_channel(1);        /* conmuta a VRY */
+ 121:Core/Src/adc_joystick.c ****         HAL_ADC_Start_IT(hadc);       /* segunda conversion */
+ 122:Core/Src/adc_joystick.c ****     } else {
+ 123:Core/Src/adc_joystick.c ****         s_raw_y   = (uint16_t)HAL_ADC_GetValue(hadc);
+ 124:Core/Src/adc_joystick.c ****         s_channel = 0;                /* secuencia completa */
+ 125:Core/Src/adc_joystick.c ****     }
+ 126:Core/Src/adc_joystick.c **** }
+ 127:Core/Src/adc_joystick.c **** 
+ 128:Core/Src/adc_joystick.c **** /* Accesores de las ultimas muestras crudas */
+ 129:Core/Src/adc_joystick.c **** uint16_t adc_joystick_raw_x(void) { return s_raw_x; }
+ 130:Core/Src/adc_joystick.c **** uint16_t adc_joystick_raw_y(void) { return s_raw_y; }
+ 131:Core/Src/adc_joystick.c **** 
+ 132:Core/Src/adc_joystick.c **** /*
+ 133:Core/Src/adc_joystick.c ****  * adc_dir
+ 134:Core/Src/adc_joystick.c ****  * Convierte una muestra cruda en una direccion discreta aplicando la banda
+ 135:Core/Src/adc_joystick.c ****  * muerta. Devuelve -1, 0 o +1.
+ 136:Core/Src/adc_joystick.c ****  */
+ 137:Core/Src/adc_joystick.c **** static int8_t adc_dir(uint16_t raw)
+ 138:Core/Src/adc_joystick.c **** {
+  29              		.loc 1 138 1 view -0
+  30              		.cfi_startproc
+  31              		@ args = 0, pretend = 0, frame = 0
+  32              		@ frame_needed = 0, uses_anonymous_args = 0
+  33              		@ link register save eliminated.
+ 139:Core/Src/adc_joystick.c ****     if (raw > (JOY_CENTER + JOY_DEADZONE)) return  1;
+ARM GAS  /tmp/ccChyHBp.s 			page 4
+
+
+  34              		.loc 1 139 5 view .LVU1
+  35              		.loc 1 139 8 is_stmt 0 view .LVU2
+  36 0000 40F65823 		movw	r3, #2648
+  37 0004 9842     		cmp	r0, r3
+  38 0006 04D8     		bhi	.L3
+ 140:Core/Src/adc_joystick.c ****     if (raw < (JOY_CENTER - JOY_DEADZONE)) return -1;
+  39              		.loc 1 140 5 is_stmt 1 view .LVU3
+  40              		.loc 1 140 8 is_stmt 0 view .LVU4
+  41 0008 B0F5B56F 		cmp	r0, #1448
+  42 000c 03D3     		bcc	.L4
+ 141:Core/Src/adc_joystick.c ****     return 0;
+  43              		.loc 1 141 12 view .LVU5
+  44 000e 0020     		movs	r0, #0
+  45              	.LVL1:
+  46              		.loc 1 141 12 view .LVU6
+  47 0010 7047     		bx	lr
+  48              	.LVL2:
+  49              	.L3:
+ 139:Core/Src/adc_joystick.c ****     if (raw > (JOY_CENTER + JOY_DEADZONE)) return  1;
+  50              		.loc 1 139 52 discriminator 1 view .LVU7
+  51 0012 0120     		movs	r0, #1
+  52              	.LVL3:
+ 139:Core/Src/adc_joystick.c ****     if (raw > (JOY_CENTER + JOY_DEADZONE)) return  1;
+  53              		.loc 1 139 52 discriminator 1 view .LVU8
+  54 0014 7047     		bx	lr
+  55              	.LVL4:
+  56              	.L4:
+ 140:Core/Src/adc_joystick.c ****     if (raw < (JOY_CENTER - JOY_DEADZONE)) return -1;
+  57              		.loc 1 140 51 discriminator 1 view .LVU9
+  58 0016 4FF0FF30 		mov	r0, #-1
+  59              	.LVL5:
+ 142:Core/Src/adc_joystick.c **** }
+  60              		.loc 1 142 1 view .LVU10
+  61 001a 7047     		bx	lr
+  62              		.cfi_endproc
+  63              	.LFE274:
+  65              		.section	.text.adc_select_channel,"ax",%progbits
+  66              		.align	1
+  67              		.syntax unified
+  68              		.thumb
+  69              		.thumb_func
+  71              	adc_select_channel:
+  72              	.LVL6:
+  73              	.LFB268:
+  34:Core/Src/adc_joystick.c ****     ADC_ChannelConfTypeDef ch = {0};
+  74              		.loc 1 34 1 is_stmt 1 view -0
+  75              		.cfi_startproc
+  76              		@ args = 0, pretend = 0, frame = 16
+  77              		@ frame_needed = 0, uses_anonymous_args = 0
+  34:Core/Src/adc_joystick.c ****     ADC_ChannelConfTypeDef ch = {0};
+  78              		.loc 1 34 1 is_stmt 0 view .LVU12
+  79 0000 00B5     		push	{lr}
+  80              	.LCFI0:
+  81              		.cfi_def_cfa_offset 4
+  82              		.cfi_offset 14, -4
+  83 0002 85B0     		sub	sp, sp, #20
+  84              	.LCFI1:
+ARM GAS  /tmp/ccChyHBp.s 			page 5
+
+
+  85              		.cfi_def_cfa_offset 24
+  35:Core/Src/adc_joystick.c **** 
+  86              		.loc 1 35 5 is_stmt 1 view .LVU13
+  35:Core/Src/adc_joystick.c **** 
+  87              		.loc 1 35 28 is_stmt 0 view .LVU14
+  88 0004 6946     		mov	r1, sp
+  89 0006 0023     		movs	r3, #0
+  90 0008 0093     		str	r3, [sp]
+  91 000a 0193     		str	r3, [sp, #4]
+  92 000c 0293     		str	r3, [sp, #8]
+  93 000e 0393     		str	r3, [sp, #12]
+  37:Core/Src/adc_joystick.c ****     ch.Rank         = 1;   /* primera y unica posicion de la secuencia */
+  94              		.loc 1 37 5 is_stmt 1 view .LVU15
+  37:Core/Src/adc_joystick.c ****     ch.Rank         = 1;   /* primera y unica posicion de la secuencia */
+  95              		.loc 1 37 50 is_stmt 0 view .LVU16
+  96 0010 C01A     		subs	r0, r0, r3
+  97              	.LVL7:
+  37:Core/Src/adc_joystick.c ****     ch.Rank         = 1;   /* primera y unica posicion de la secuencia */
+  98              		.loc 1 37 50 view .LVU17
+  99 0012 18BF     		it	ne
+ 100 0014 0120     		movne	r0, #1
+  37:Core/Src/adc_joystick.c ****     ch.Rank         = 1;   /* primera y unica posicion de la secuencia */
+ 101              		.loc 1 37 21 view .LVU18
+ 102 0016 0090     		str	r0, [sp]
+  38:Core/Src/adc_joystick.c ****     ch.SamplingTime = ADC_SAMPLETIME_84CYCLES;
+ 103              		.loc 1 38 5 is_stmt 1 view .LVU19
+  38:Core/Src/adc_joystick.c ****     ch.SamplingTime = ADC_SAMPLETIME_84CYCLES;
+ 104              		.loc 1 38 21 is_stmt 0 view .LVU20
+ 105 0018 0123     		movs	r3, #1
+ 106 001a 0193     		str	r3, [sp, #4]
+  39:Core/Src/adc_joystick.c ****     /* Tiempo de muestreo: 84 ciclos de ADCCLK. Debe ser suficiente para que el
+ 107              		.loc 1 39 5 is_stmt 1 view .LVU21
+  39:Core/Src/adc_joystick.c ****     /* Tiempo de muestreo: 84 ciclos de ADCCLK. Debe ser suficiente para que el
+ 108              		.loc 1 39 21 is_stmt 0 view .LVU22
+ 109 001c 0423     		movs	r3, #4
+ 110 001e 0293     		str	r3, [sp, #8]
+  46:Core/Src/adc_joystick.c ****         Error_Handler();
+ 111              		.loc 1 46 5 is_stmt 1 view .LVU23
+  46:Core/Src/adc_joystick.c ****         Error_Handler();
+ 112              		.loc 1 46 9 is_stmt 0 view .LVU24
+ 113 0020 0448     		ldr	r0, .L9
+ 114 0022 FFF7FEFF 		bl	HAL_ADC_ConfigChannel
+ 115              	.LVL8:
+  46:Core/Src/adc_joystick.c ****         Error_Handler();
+ 116              		.loc 1 46 8 discriminator 1 view .LVU25
+ 117 0026 08B9     		cbnz	r0, .L8
+ 118              	.L5:
+  49:Core/Src/adc_joystick.c **** 
+ 119              		.loc 1 49 1 view .LVU26
+ 120 0028 05B0     		add	sp, sp, #20
+ 121              	.LCFI2:
+ 122              		.cfi_remember_state
+ 123              		.cfi_def_cfa_offset 4
+ 124              		@ sp needed
+ 125 002a 00BD     		pop	{pc}
+ 126              	.L8:
+ 127              	.LCFI3:
+ARM GAS  /tmp/ccChyHBp.s 			page 6
+
+
+ 128              		.cfi_restore_state
+  47:Core/Src/adc_joystick.c ****     }
+ 129              		.loc 1 47 9 is_stmt 1 view .LVU27
+ 130 002c FFF7FEFF 		bl	Error_Handler
+ 131              	.LVL9:
+  49:Core/Src/adc_joystick.c **** 
+ 132              		.loc 1 49 1 is_stmt 0 view .LVU28
+ 133 0030 FAE7     		b	.L5
+ 134              	.L10:
+ 135 0032 00BF     		.align	2
+ 136              	.L9:
+ 137 0034 00000000 		.word	hadc1
+ 138              		.cfi_endproc
+ 139              	.LFE268:
+ 141              		.section	.text.adc_joystick_init,"ax",%progbits
+ 142              		.align	1
+ 143              		.global	adc_joystick_init
+ 144              		.syntax unified
+ 145              		.thumb
+ 146              		.thumb_func
+ 148              	adc_joystick_init:
+ 149              	.LFB269:
+  52:Core/Src/adc_joystick.c ****     __HAL_RCC_ADC1_CLK_ENABLE();   /* reloj del ADC1 (bus APB2) */
+ 150              		.loc 1 52 1 is_stmt 1 view -0
+ 151              		.cfi_startproc
+ 152              		@ args = 0, pretend = 0, frame = 8
+ 153              		@ frame_needed = 0, uses_anonymous_args = 0
+ 154 0000 00B5     		push	{lr}
+ 155              	.LCFI4:
+ 156              		.cfi_def_cfa_offset 4
+ 157              		.cfi_offset 14, -4
+ 158 0002 83B0     		sub	sp, sp, #12
+ 159              	.LCFI5:
+ 160              		.cfi_def_cfa_offset 16
+  53:Core/Src/adc_joystick.c **** 
+ 161              		.loc 1 53 5 view .LVU30
+ 162              	.LBB2:
+  53:Core/Src/adc_joystick.c **** 
+ 163              		.loc 1 53 5 view .LVU31
+ 164 0004 0023     		movs	r3, #0
+ 165 0006 0193     		str	r3, [sp, #4]
+  53:Core/Src/adc_joystick.c **** 
+ 166              		.loc 1 53 5 view .LVU32
+ 167 0008 184A     		ldr	r2, .L15
+ 168 000a 516C     		ldr	r1, [r2, #68]
+ 169 000c 41F48071 		orr	r1, r1, #256
+ 170 0010 5164     		str	r1, [r2, #68]
+  53:Core/Src/adc_joystick.c **** 
+ 171              		.loc 1 53 5 view .LVU33
+ 172 0012 526C     		ldr	r2, [r2, #68]
+ 173 0014 02F48072 		and	r2, r2, #256
+ 174 0018 0192     		str	r2, [sp, #4]
+  53:Core/Src/adc_joystick.c **** 
+ 175              		.loc 1 53 5 view .LVU34
+ 176 001a 019A     		ldr	r2, [sp, #4]
+ 177              	.LBE2:
+  53:Core/Src/adc_joystick.c **** 
+ARM GAS  /tmp/ccChyHBp.s 			page 7
+
+
+ 178              		.loc 1 53 5 view .LVU35
+  55:Core/Src/adc_joystick.c **** 
+ 179              		.loc 1 55 5 view .LVU36
+  55:Core/Src/adc_joystick.c **** 
+ 180              		.loc 1 55 20 is_stmt 0 view .LVU37
+ 181 001c 1448     		ldr	r0, .L15+4
+ 182 001e 154A     		ldr	r2, .L15+8
+ 183 0020 0260     		str	r2, [r0]
+  60:Core/Src/adc_joystick.c **** 
+ 184              		.loc 1 60 5 is_stmt 1 view .LVU38
+  60:Core/Src/adc_joystick.c **** 
+ 185              		.loc 1 60 31 is_stmt 0 view .LVU39
+ 186 0022 4FF48032 		mov	r2, #65536
+ 187 0026 4260     		str	r2, [r0, #4]
+  62:Core/Src/adc_joystick.c ****                                         10B, 8B, 6B; menor resolucion implica
+ 188              		.loc 1 62 5 is_stmt 1 view .LVU40
+  62:Core/Src/adc_joystick.c ****                                         10B, 8B, 6B; menor resolucion implica
+ 189              		.loc 1 62 27 is_stmt 0 view .LVU41
+ 190 0028 8360     		str	r3, [r0, #8]
+  65:Core/Src/adc_joystick.c ****     hadc1.Init.ContinuousConvMode    = DISABLE;  /* conversion unica bajo demanda */
+ 191              		.loc 1 65 5 is_stmt 1 view .LVU42
+  65:Core/Src/adc_joystick.c ****     hadc1.Init.ContinuousConvMode    = DISABLE;  /* conversion unica bajo demanda */
+ 192              		.loc 1 65 38 is_stmt 0 view .LVU43
+ 193 002a 0361     		str	r3, [r0, #16]
+  66:Core/Src/adc_joystick.c ****     hadc1.Init.DiscontinuousConvMode = DISABLE;
+ 194              		.loc 1 66 5 is_stmt 1 view .LVU44
+  66:Core/Src/adc_joystick.c ****     hadc1.Init.DiscontinuousConvMode = DISABLE;
+ 195              		.loc 1 66 38 is_stmt 0 view .LVU45
+ 196 002c 0376     		strb	r3, [r0, #24]
+  67:Core/Src/adc_joystick.c ****     hadc1.Init.ExternalTrigConv      = ADC_SOFTWARE_START;
+ 197              		.loc 1 67 5 is_stmt 1 view .LVU46
+  67:Core/Src/adc_joystick.c ****     hadc1.Init.ExternalTrigConv      = ADC_SOFTWARE_START;
+ 198              		.loc 1 67 38 is_stmt 0 view .LVU47
+ 199 002e 80F82030 		strb	r3, [r0, #32]
+  68:Core/Src/adc_joystick.c ****                                         /* el disparo lo da el software desde
+ 200              		.loc 1 68 5 is_stmt 1 view .LVU48
+  68:Core/Src/adc_joystick.c ****                                         /* el disparo lo da el software desde
+ 201              		.loc 1 68 38 is_stmt 0 view .LVU49
+ 202 0032 114A     		ldr	r2, .L15+12
+ 203 0034 8262     		str	r2, [r0, #40]
+  72:Core/Src/adc_joystick.c ****     hadc1.Init.DataAlign             = ADC_DATAALIGN_RIGHT;
+ 204              		.loc 1 72 5 is_stmt 1 view .LVU50
+  72:Core/Src/adc_joystick.c ****     hadc1.Init.DataAlign             = ADC_DATAALIGN_RIGHT;
+ 205              		.loc 1 72 38 is_stmt 0 view .LVU51
+ 206 0036 C362     		str	r3, [r0, #44]
+  73:Core/Src/adc_joystick.c ****                                         /* resultado justificado a la derecha:
+ 207              		.loc 1 73 5 is_stmt 1 view .LVU52
+  73:Core/Src/adc_joystick.c ****                                         /* resultado justificado a la derecha:
+ 208              		.loc 1 73 38 is_stmt 0 view .LVU53
+ 209 0038 C360     		str	r3, [r0, #12]
+  77:Core/Src/adc_joystick.c ****     hadc1.Init.DMAContinuousRequests = DISABLE;
+ 210              		.loc 1 77 5 is_stmt 1 view .LVU54
+  77:Core/Src/adc_joystick.c ****     hadc1.Init.DMAContinuousRequests = DISABLE;
+ 211              		.loc 1 77 38 is_stmt 0 view .LVU55
+ 212 003a 0122     		movs	r2, #1
+ 213 003c C261     		str	r2, [r0, #28]
+  78:Core/Src/adc_joystick.c ****     hadc1.Init.EOCSelection          = ADC_EOC_SINGLE_CONV;
+ARM GAS  /tmp/ccChyHBp.s 			page 8
+
+
+ 214              		.loc 1 78 5 is_stmt 1 view .LVU56
+  78:Core/Src/adc_joystick.c ****     hadc1.Init.EOCSelection          = ADC_EOC_SINGLE_CONV;
+ 215              		.loc 1 78 38 is_stmt 0 view .LVU57
+ 216 003e 80F83030 		strb	r3, [r0, #48]
+  79:Core/Src/adc_joystick.c ****                                         /* la bandera EOC se activa al terminar
+ 217              		.loc 1 79 5 is_stmt 1 view .LVU58
+  79:Core/Src/adc_joystick.c ****                                         /* la bandera EOC se activa al terminar
+ 218              		.loc 1 79 38 is_stmt 0 view .LVU59
+ 219 0042 4261     		str	r2, [r0, #20]
+  83:Core/Src/adc_joystick.c ****         Error_Handler();
+ 220              		.loc 1 83 5 is_stmt 1 view .LVU60
+  83:Core/Src/adc_joystick.c ****         Error_Handler();
+ 221              		.loc 1 83 9 is_stmt 0 view .LVU61
+ 222 0044 FFF7FEFF 		bl	HAL_ADC_Init
+ 223              	.LVL10:
+  83:Core/Src/adc_joystick.c ****         Error_Handler();
+ 224              		.loc 1 83 8 discriminator 1 view .LVU62
+ 225 0048 60B9     		cbnz	r0, .L14
+ 226              	.L12:
+  87:Core/Src/adc_joystick.c **** 
+ 227              		.loc 1 87 5 is_stmt 1 view .LVU63
+ 228 004a 0020     		movs	r0, #0
+ 229 004c FFF7FEFF 		bl	adc_select_channel
+ 230              	.LVL11:
+  90:Core/Src/adc_joystick.c ****     HAL_NVIC_EnableIRQ(ADC_IRQn);
+ 231              		.loc 1 90 5 view .LVU64
+ 232 0050 0022     		movs	r2, #0
+ 233 0052 0621     		movs	r1, #6
+ 234 0054 1220     		movs	r0, #18
+ 235 0056 FFF7FEFF 		bl	HAL_NVIC_SetPriority
+ 236              	.LVL12:
+  91:Core/Src/adc_joystick.c **** }
+ 237              		.loc 1 91 5 view .LVU65
+ 238 005a 1220     		movs	r0, #18
+ 239 005c FFF7FEFF 		bl	HAL_NVIC_EnableIRQ
+ 240              	.LVL13:
+  92:Core/Src/adc_joystick.c **** 
+ 241              		.loc 1 92 1 is_stmt 0 view .LVU66
+ 242 0060 03B0     		add	sp, sp, #12
+ 243              	.LCFI6:
+ 244              		.cfi_remember_state
+ 245              		.cfi_def_cfa_offset 4
+ 246              		@ sp needed
+ 247 0062 00BD     		pop	{pc}
+ 248              	.L14:
+ 249              	.LCFI7:
+ 250              		.cfi_restore_state
+  84:Core/Src/adc_joystick.c ****     }
+ 251              		.loc 1 84 9 is_stmt 1 view .LVU67
+ 252 0064 FFF7FEFF 		bl	Error_Handler
+ 253              	.LVL14:
+ 254 0068 EFE7     		b	.L12
+ 255              	.L16:
+ 256 006a 00BF     		.align	2
+ 257              	.L15:
+ 258 006c 00380240 		.word	1073887232
+ 259 0070 00000000 		.word	hadc1
+ARM GAS  /tmp/ccChyHBp.s 			page 9
+
+
+ 260 0074 00200140 		.word	1073815552
+ 261 0078 0100000F 		.word	251658241
+ 262              		.cfi_endproc
+ 263              	.LFE269:
+ 265              		.section	.text.adc_joystick_start,"ax",%progbits
+ 266              		.align	1
+ 267              		.global	adc_joystick_start
+ 268              		.syntax unified
+ 269              		.thumb
+ 270              		.thumb_func
+ 272              	adc_joystick_start:
+ 273              	.LFB270:
+ 100:Core/Src/adc_joystick.c ****     s_channel = 0;              /* la secuencia empieza siempre por VRX */
+ 274              		.loc 1 100 1 view -0
+ 275              		.cfi_startproc
+ 276              		@ args = 0, pretend = 0, frame = 0
+ 277              		@ frame_needed = 0, uses_anonymous_args = 0
+ 278 0000 08B5     		push	{r3, lr}
+ 279              	.LCFI8:
+ 280              		.cfi_def_cfa_offset 8
+ 281              		.cfi_offset 3, -8
+ 282              		.cfi_offset 14, -4
+ 101:Core/Src/adc_joystick.c ****     adc_select_channel(0);
+ 283              		.loc 1 101 5 view .LVU69
+ 101:Core/Src/adc_joystick.c ****     adc_select_channel(0);
+ 284              		.loc 1 101 15 is_stmt 0 view .LVU70
+ 285 0002 0020     		movs	r0, #0
+ 286 0004 034B     		ldr	r3, .L19
+ 287 0006 1870     		strb	r0, [r3]
+ 102:Core/Src/adc_joystick.c ****     HAL_ADC_Start_IT(&hadc1);   /* arranca la conversion con interrupcion EOC */
+ 288              		.loc 1 102 5 is_stmt 1 view .LVU71
+ 289 0008 FFF7FEFF 		bl	adc_select_channel
+ 290              	.LVL15:
+ 103:Core/Src/adc_joystick.c **** }
+ 291              		.loc 1 103 5 view .LVU72
+ 292 000c 0248     		ldr	r0, .L19+4
+ 293 000e FFF7FEFF 		bl	HAL_ADC_Start_IT
+ 294              	.LVL16:
+ 104:Core/Src/adc_joystick.c **** 
+ 295              		.loc 1 104 1 is_stmt 0 view .LVU73
+ 296 0012 08BD     		pop	{r3, pc}
+ 297              	.L20:
+ 298              		.align	2
+ 299              	.L19:
+ 300 0014 00000000 		.word	s_channel
+ 301 0018 00000000 		.word	hadc1
+ 302              		.cfi_endproc
+ 303              	.LFE270:
+ 305              		.section	.text.HAL_ADC_ConvCpltCallback,"ax",%progbits
+ 306              		.align	1
+ 307              		.global	HAL_ADC_ConvCpltCallback
+ 308              		.syntax unified
+ 309              		.thumb
+ 310              		.thumb_func
+ 312              	HAL_ADC_ConvCpltCallback:
+ 313              	.LVL17:
+ 314              	.LFB271:
+ARM GAS  /tmp/ccChyHBp.s 			page 10
+
+
+ 112:Core/Src/adc_joystick.c ****     if (hadc->Instance != ADC1) {
+ 315              		.loc 1 112 1 is_stmt 1 view -0
+ 316              		.cfi_startproc
+ 317              		@ args = 0, pretend = 0, frame = 0
+ 318              		@ frame_needed = 0, uses_anonymous_args = 0
+ 113:Core/Src/adc_joystick.c ****         return;   /* proteccion por si se anadiese otro ADC al proyecto */
+ 319              		.loc 1 113 5 view .LVU75
+ 113:Core/Src/adc_joystick.c ****         return;   /* proteccion por si se anadiese otro ADC al proyecto */
+ 320              		.loc 1 113 13 is_stmt 0 view .LVU76
+ 321 0000 0268     		ldr	r2, [r0]
+ 113:Core/Src/adc_joystick.c ****         return;   /* proteccion por si se anadiese otro ADC al proyecto */
+ 322              		.loc 1 113 8 view .LVU77
+ 323 0002 0F4B     		ldr	r3, .L29
+ 324 0004 9A42     		cmp	r2, r3
+ 325 0006 00D0     		beq	.L28
+ 326 0008 7047     		bx	lr
+ 327              	.L28:
+ 112:Core/Src/adc_joystick.c ****     if (hadc->Instance != ADC1) {
+ 328              		.loc 1 112 1 view .LVU78
+ 329 000a 10B5     		push	{r4, lr}
+ 330              	.LCFI9:
+ 331              		.cfi_def_cfa_offset 8
+ 332              		.cfi_offset 4, -8
+ 333              		.cfi_offset 14, -4
+ 334 000c 0446     		mov	r4, r0
+ 117:Core/Src/adc_joystick.c ****         s_raw_x   = (uint16_t)HAL_ADC_GetValue(hadc); /* lee y limpia EOC */
+ 335              		.loc 1 117 5 is_stmt 1 view .LVU79
+ 117:Core/Src/adc_joystick.c ****         s_raw_x   = (uint16_t)HAL_ADC_GetValue(hadc); /* lee y limpia EOC */
+ 336              		.loc 1 117 19 is_stmt 0 view .LVU80
+ 337 000e 0D4B     		ldr	r3, .L29+4
+ 338 0010 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 117:Core/Src/adc_joystick.c ****         s_raw_x   = (uint16_t)HAL_ADC_GetValue(hadc); /* lee y limpia EOC */
+ 339              		.loc 1 117 8 view .LVU81
+ 340 0012 63B9     		cbnz	r3, .L23
+ 118:Core/Src/adc_joystick.c ****         s_channel = 1;
+ 341              		.loc 1 118 9 is_stmt 1 view .LVU82
+ 118:Core/Src/adc_joystick.c ****         s_channel = 1;
+ 342              		.loc 1 118 31 is_stmt 0 view .LVU83
+ 343 0014 FFF7FEFF 		bl	HAL_ADC_GetValue
+ 344              	.LVL18:
+ 118:Core/Src/adc_joystick.c ****         s_channel = 1;
+ 345              		.loc 1 118 19 discriminator 1 view .LVU84
+ 346 0018 0B4B     		ldr	r3, .L29+8
+ 347 001a 1880     		strh	r0, [r3]	@ movhi
+ 119:Core/Src/adc_joystick.c ****         adc_select_channel(1);        /* conmuta a VRY */
+ 348              		.loc 1 119 9 is_stmt 1 view .LVU85
+ 119:Core/Src/adc_joystick.c ****         adc_select_channel(1);        /* conmuta a VRY */
+ 349              		.loc 1 119 19 is_stmt 0 view .LVU86
+ 350 001c 0120     		movs	r0, #1
+ 351 001e 094B     		ldr	r3, .L29+4
+ 352 0020 1870     		strb	r0, [r3]
+ 120:Core/Src/adc_joystick.c ****         HAL_ADC_Start_IT(hadc);       /* segunda conversion */
+ 353              		.loc 1 120 9 is_stmt 1 view .LVU87
+ 354 0022 FFF7FEFF 		bl	adc_select_channel
+ 355              	.LVL19:
+ 121:Core/Src/adc_joystick.c ****     } else {
+ 356              		.loc 1 121 9 view .LVU88
+ARM GAS  /tmp/ccChyHBp.s 			page 11
+
+
+ 357 0026 2046     		mov	r0, r4
+ 358 0028 FFF7FEFF 		bl	HAL_ADC_Start_IT
+ 359              	.LVL20:
+ 360              	.L21:
+ 126:Core/Src/adc_joystick.c **** 
+ 361              		.loc 1 126 1 is_stmt 0 view .LVU89
+ 362 002c 10BD     		pop	{r4, pc}
+ 363              	.LVL21:
+ 364              	.L23:
+ 123:Core/Src/adc_joystick.c ****         s_channel = 0;                /* secuencia completa */
+ 365              		.loc 1 123 9 is_stmt 1 view .LVU90
+ 123:Core/Src/adc_joystick.c ****         s_channel = 0;                /* secuencia completa */
+ 366              		.loc 1 123 31 is_stmt 0 view .LVU91
+ 367 002e FFF7FEFF 		bl	HAL_ADC_GetValue
+ 368              	.LVL22:
+ 123:Core/Src/adc_joystick.c ****         s_channel = 0;                /* secuencia completa */
+ 369              		.loc 1 123 19 discriminator 1 view .LVU92
+ 370 0032 064B     		ldr	r3, .L29+12
+ 371 0034 1880     		strh	r0, [r3]	@ movhi
+ 124:Core/Src/adc_joystick.c ****     }
+ 372              		.loc 1 124 9 is_stmt 1 view .LVU93
+ 124:Core/Src/adc_joystick.c ****     }
+ 373              		.loc 1 124 19 is_stmt 0 view .LVU94
+ 374 0036 034B     		ldr	r3, .L29+4
+ 375 0038 0022     		movs	r2, #0
+ 376 003a 1A70     		strb	r2, [r3]
+ 377 003c F6E7     		b	.L21
+ 378              	.L30:
+ 379 003e 00BF     		.align	2
+ 380              	.L29:
+ 381 0040 00200140 		.word	1073815552
+ 382 0044 00000000 		.word	s_channel
+ 383 0048 00000000 		.word	s_raw_x
+ 384 004c 00000000 		.word	s_raw_y
+ 385              		.cfi_endproc
+ 386              	.LFE271:
+ 388              		.section	.text.adc_joystick_raw_x,"ax",%progbits
+ 389              		.align	1
+ 390              		.global	adc_joystick_raw_x
+ 391              		.syntax unified
+ 392              		.thumb
+ 393              		.thumb_func
+ 395              	adc_joystick_raw_x:
+ 396              	.LFB272:
+ 129:Core/Src/adc_joystick.c **** uint16_t adc_joystick_raw_y(void) { return s_raw_y; }
+ 397              		.loc 1 129 35 is_stmt 1 view -0
+ 398              		.cfi_startproc
+ 399              		@ args = 0, pretend = 0, frame = 0
+ 400              		@ frame_needed = 0, uses_anonymous_args = 0
+ 401              		@ link register save eliminated.
+ 129:Core/Src/adc_joystick.c **** uint16_t adc_joystick_raw_y(void) { return s_raw_y; }
+ 402              		.loc 1 129 37 view .LVU96
+ 129:Core/Src/adc_joystick.c **** uint16_t adc_joystick_raw_y(void) { return s_raw_y; }
+ 403              		.loc 1 129 53 is_stmt 0 view .LVU97
+ 404 0000 014B     		ldr	r3, .L32
+ 405 0002 1888     		ldrh	r0, [r3]
+ 406 0004 7047     		bx	lr
+ARM GAS  /tmp/ccChyHBp.s 			page 12
+
+
+ 407              	.L33:
+ 408 0006 00BF     		.align	2
+ 409              	.L32:
+ 410 0008 00000000 		.word	s_raw_x
+ 411              		.cfi_endproc
+ 412              	.LFE272:
+ 414              		.section	.text.adc_joystick_raw_y,"ax",%progbits
+ 415              		.align	1
+ 416              		.global	adc_joystick_raw_y
+ 417              		.syntax unified
+ 418              		.thumb
+ 419              		.thumb_func
+ 421              	adc_joystick_raw_y:
+ 422              	.LFB273:
+ 130:Core/Src/adc_joystick.c **** 
+ 423              		.loc 1 130 35 is_stmt 1 view -0
+ 424              		.cfi_startproc
+ 425              		@ args = 0, pretend = 0, frame = 0
+ 426              		@ frame_needed = 0, uses_anonymous_args = 0
+ 427              		@ link register save eliminated.
+ 130:Core/Src/adc_joystick.c **** 
+ 428              		.loc 1 130 37 view .LVU99
+ 130:Core/Src/adc_joystick.c **** 
+ 429              		.loc 1 130 53 is_stmt 0 view .LVU100
+ 430 0000 014B     		ldr	r3, .L35
+ 431 0002 1888     		ldrh	r0, [r3]
+ 432 0004 7047     		bx	lr
+ 433              	.L36:
+ 434 0006 00BF     		.align	2
+ 435              	.L35:
+ 436 0008 00000000 		.word	s_raw_y
+ 437              		.cfi_endproc
+ 438              	.LFE273:
+ 440              		.section	.text.adc_joystick_dir_x,"ax",%progbits
+ 441              		.align	1
+ 442              		.global	adc_joystick_dir_x
+ 443              		.syntax unified
+ 444              		.thumb
+ 445              		.thumb_func
+ 447              	adc_joystick_dir_x:
+ 448              	.LFB275:
+ 143:Core/Src/adc_joystick.c **** 
+ 144:Core/Src/adc_joystick.c **** int8_t adc_joystick_dir_x(void) { return adc_dir(s_raw_x); }
+ 449              		.loc 1 144 33 is_stmt 1 view -0
+ 450              		.cfi_startproc
+ 451              		@ args = 0, pretend = 0, frame = 0
+ 452              		@ frame_needed = 0, uses_anonymous_args = 0
+ 453 0000 08B5     		push	{r3, lr}
+ 454              	.LCFI10:
+ 455              		.cfi_def_cfa_offset 8
+ 456              		.cfi_offset 3, -8
+ 457              		.cfi_offset 14, -4
+ 458              		.loc 1 144 35 view .LVU102
+ 459              		.loc 1 144 42 is_stmt 0 view .LVU103
+ 460 0002 024B     		ldr	r3, .L39
+ 461 0004 1888     		ldrh	r0, [r3]
+ 462 0006 FFF7FEFF 		bl	adc_dir
+ARM GAS  /tmp/ccChyHBp.s 			page 13
+
+
+ 463              	.LVL23:
+ 464              		.loc 1 144 60 view .LVU104
+ 465 000a 08BD     		pop	{r3, pc}
+ 466              	.L40:
+ 467              		.align	2
+ 468              	.L39:
+ 469 000c 00000000 		.word	s_raw_x
+ 470              		.cfi_endproc
+ 471              	.LFE275:
+ 473              		.section	.text.adc_joystick_dir_y,"ax",%progbits
+ 474              		.align	1
+ 475              		.global	adc_joystick_dir_y
+ 476              		.syntax unified
+ 477              		.thumb
+ 478              		.thumb_func
+ 480              	adc_joystick_dir_y:
+ 481              	.LFB276:
+ 145:Core/Src/adc_joystick.c **** int8_t adc_joystick_dir_y(void) { return adc_dir(s_raw_y); }
+ 482              		.loc 1 145 33 is_stmt 1 view -0
+ 483              		.cfi_startproc
+ 484              		@ args = 0, pretend = 0, frame = 0
+ 485              		@ frame_needed = 0, uses_anonymous_args = 0
+ 486 0000 08B5     		push	{r3, lr}
+ 487              	.LCFI11:
+ 488              		.cfi_def_cfa_offset 8
+ 489              		.cfi_offset 3, -8
+ 490              		.cfi_offset 14, -4
+ 491              		.loc 1 145 35 view .LVU106
+ 492              		.loc 1 145 42 is_stmt 0 view .LVU107
+ 493 0002 024B     		ldr	r3, .L43
+ 494 0004 1888     		ldrh	r0, [r3]
+ 495 0006 FFF7FEFF 		bl	adc_dir
+ 496              	.LVL24:
+ 497              		.loc 1 145 60 view .LVU108
+ 498 000a 08BD     		pop	{r3, pc}
+ 499              	.L44:
+ 500              		.align	2
+ 501              	.L43:
+ 502 000c 00000000 		.word	s_raw_y
+ 503              		.cfi_endproc
+ 504              	.LFE276:
+ 506              		.section	.data.s_raw_y,"aw"
+ 507              		.align	1
+ 510              	s_raw_y:
+ 511 0000 0008     		.short	2048
+ 512              		.section	.data.s_raw_x,"aw"
+ 513              		.align	1
+ 516              	s_raw_x:
+ 517 0000 0008     		.short	2048
+ 518              		.section	.bss.s_channel,"aw",%nobits
+ 521              	s_channel:
+ 522 0000 00       		.space	1
+ 523              		.global	hadc1
+ 524              		.section	.bss.hadc1,"aw",%nobits
+ 525              		.align	2
+ 528              	hadc1:
+ 529 0000 00000000 		.space	72
+ARM GAS  /tmp/ccChyHBp.s 			page 14
+
+
+ 529      00000000 
+ 529      00000000 
+ 529      00000000 
+ 529      00000000 
+ 530              		.text
+ 531              	.Letext0:
+ 532              		.file 2 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h"
+ 533              		.file 3 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 534              		.file 4 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 535              		.file 5 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h"
+ 536              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+ 537              		.file 7 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h"
+ 538              		.file 8 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_adc.h"
+ 539              		.file 9 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_cortex.h"
+ 540              		.file 10 "Core/Inc/adc_joystick.h"
+ 541              		.file 11 "Core/Inc/main.h"
+ARM GAS  /tmp/ccChyHBp.s 			page 15
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 adc_joystick.c
+     /tmp/ccChyHBp.s:21     .text.adc_dir:00000000 $t
+     /tmp/ccChyHBp.s:26     .text.adc_dir:00000000 adc_dir
+     /tmp/ccChyHBp.s:66     .text.adc_select_channel:00000000 $t
+     /tmp/ccChyHBp.s:71     .text.adc_select_channel:00000000 adc_select_channel
+     /tmp/ccChyHBp.s:137    .text.adc_select_channel:00000034 $d
+     /tmp/ccChyHBp.s:528    .bss.hadc1:00000000 hadc1
+     /tmp/ccChyHBp.s:142    .text.adc_joystick_init:00000000 $t
+     /tmp/ccChyHBp.s:148    .text.adc_joystick_init:00000000 adc_joystick_init
+     /tmp/ccChyHBp.s:258    .text.adc_joystick_init:0000006c $d
+     /tmp/ccChyHBp.s:266    .text.adc_joystick_start:00000000 $t
+     /tmp/ccChyHBp.s:272    .text.adc_joystick_start:00000000 adc_joystick_start
+     /tmp/ccChyHBp.s:300    .text.adc_joystick_start:00000014 $d
+     /tmp/ccChyHBp.s:521    .bss.s_channel:00000000 s_channel
+     /tmp/ccChyHBp.s:306    .text.HAL_ADC_ConvCpltCallback:00000000 $t
+     /tmp/ccChyHBp.s:312    .text.HAL_ADC_ConvCpltCallback:00000000 HAL_ADC_ConvCpltCallback
+     /tmp/ccChyHBp.s:381    .text.HAL_ADC_ConvCpltCallback:00000040 $d
+     /tmp/ccChyHBp.s:516    .data.s_raw_x:00000000 s_raw_x
+     /tmp/ccChyHBp.s:510    .data.s_raw_y:00000000 s_raw_y
+     /tmp/ccChyHBp.s:389    .text.adc_joystick_raw_x:00000000 $t
+     /tmp/ccChyHBp.s:395    .text.adc_joystick_raw_x:00000000 adc_joystick_raw_x
+     /tmp/ccChyHBp.s:410    .text.adc_joystick_raw_x:00000008 $d
+     /tmp/ccChyHBp.s:415    .text.adc_joystick_raw_y:00000000 $t
+     /tmp/ccChyHBp.s:421    .text.adc_joystick_raw_y:00000000 adc_joystick_raw_y
+     /tmp/ccChyHBp.s:436    .text.adc_joystick_raw_y:00000008 $d
+     /tmp/ccChyHBp.s:441    .text.adc_joystick_dir_x:00000000 $t
+     /tmp/ccChyHBp.s:447    .text.adc_joystick_dir_x:00000000 adc_joystick_dir_x
+     /tmp/ccChyHBp.s:469    .text.adc_joystick_dir_x:0000000c $d
+     /tmp/ccChyHBp.s:474    .text.adc_joystick_dir_y:00000000 $t
+     /tmp/ccChyHBp.s:480    .text.adc_joystick_dir_y:00000000 adc_joystick_dir_y
+     /tmp/ccChyHBp.s:502    .text.adc_joystick_dir_y:0000000c $d
+     /tmp/ccChyHBp.s:507    .data.s_raw_y:00000000 $d
+     /tmp/ccChyHBp.s:513    .data.s_raw_x:00000000 $d
+     /tmp/ccChyHBp.s:522    .bss.s_channel:00000000 $d
+     /tmp/ccChyHBp.s:525    .bss.hadc1:00000000 $d
+
+UNDEFINED SYMBOLS
+HAL_ADC_ConfigChannel
+Error_Handler
+HAL_ADC_Init
+HAL_NVIC_SetPriority
+HAL_NVIC_EnableIRQ
+HAL_ADC_Start_IT
+HAL_ADC_GetValue

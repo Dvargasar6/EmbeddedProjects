@@ -1,0 +1,401 @@
+ARM GAS  /tmp/ccSleuCs.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 1
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"syscalls.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.file 1 "Core/Src/syscalls.c"
+  20              		.section	.text._sbrk,"ax",%progbits
+  21              		.align	1
+  22              		.global	_sbrk
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	_sbrk:
+  28              	.LVL0:
+  29              	.LFB0:
+   1:Core/Src/syscalls.c **** /*
+   2:Core/Src/syscalls.c ****  * syscalls.c - Stubs minimos de las llamadas al sistema que exige newlib.
+   3:Core/Src/syscalls.c ****  * En un sistema bare-metal no hay sistema operativo, por lo que se
+   4:Core/Src/syscalls.c ****  * proporcionan implementaciones vacias para satisfacer al enlazador.
+   5:Core/Src/syscalls.c ****  */
+   6:Core/Src/syscalls.c **** #include <sys/stat.h>
+   7:Core/Src/syscalls.c **** #include <errno.h>
+   8:Core/Src/syscalls.c **** #include <stdint.h>
+   9:Core/Src/syscalls.c **** 
+  10:Core/Src/syscalls.c **** /* Puntero al final de la region estatica; lo define el linker script */
+  11:Core/Src/syscalls.c **** extern int _end;
+  12:Core/Src/syscalls.c **** 
+  13:Core/Src/syscalls.c **** /*
+  14:Core/Src/syscalls.c ****  * _sbrk: reserva memoria para el heap (usado por malloc).
+  15:Core/Src/syscalls.c ****  * Avanza un puntero desde el final de .bss.
+  16:Core/Src/syscalls.c ****  */
+  17:Core/Src/syscalls.c **** void *_sbrk(int incr)
+  18:Core/Src/syscalls.c **** {
+  30              		.loc 1 18 1 view -0
+  31              		.cfi_startproc
+  32              		@ args = 0, pretend = 0, frame = 0
+  33              		@ frame_needed = 0, uses_anonymous_args = 0
+  34              		@ link register save eliminated.
+  35              		.loc 1 18 1 is_stmt 0 view .LVU1
+  36 0000 0346     		mov	r3, r0
+  19:Core/Src/syscalls.c ****     static unsigned char *heap = NULL;  /* posicion actual del heap */
+  37              		.loc 1 19 5 is_stmt 1 view .LVU2
+  20:Core/Src/syscalls.c ****     unsigned char *prev;
+  38              		.loc 1 20 5 view .LVU3
+ARM GAS  /tmp/ccSleuCs.s 			page 2
+
+
+  21:Core/Src/syscalls.c **** 
+  22:Core/Src/syscalls.c ****     if (heap == NULL) {
+  39              		.loc 1 22 5 view .LVU4
+  40              		.loc 1 22 14 is_stmt 0 view .LVU5
+  41 0002 064A     		ldr	r2, .L4
+  42 0004 1268     		ldr	r2, [r2]
+  43              		.loc 1 22 8 view .LVU6
+  44 0006 22B1     		cbz	r2, .L3
+  45              	.L2:
+  23:Core/Src/syscalls.c ****         heap = (unsigned char *)&_end;  /* primera llamada: arranca en _end */
+  24:Core/Src/syscalls.c ****     }
+  25:Core/Src/syscalls.c ****     prev = heap;
+  46              		.loc 1 25 5 is_stmt 1 view .LVU7
+  47              		.loc 1 25 10 is_stmt 0 view .LVU8
+  48 0008 044A     		ldr	r2, .L4
+  49 000a 1068     		ldr	r0, [r2]
+  50              	.LVL1:
+  26:Core/Src/syscalls.c ****     heap += incr;
+  51              		.loc 1 26 5 is_stmt 1 view .LVU9
+  52              		.loc 1 26 10 is_stmt 0 view .LVU10
+  53 000c 0344     		add	r3, r3, r0
+  54              	.LVL2:
+  55              		.loc 1 26 10 view .LVU11
+  56 000e 1360     		str	r3, [r2]
+  27:Core/Src/syscalls.c ****     return (void *)prev;
+  57              		.loc 1 27 5 is_stmt 1 view .LVU12
+  28:Core/Src/syscalls.c **** }
+  58              		.loc 1 28 1 is_stmt 0 view .LVU13
+  59 0010 7047     		bx	lr
+  60              	.LVL3:
+  61              	.L3:
+  23:Core/Src/syscalls.c ****     }
+  62              		.loc 1 23 9 is_stmt 1 view .LVU14
+  23:Core/Src/syscalls.c ****     }
+  63              		.loc 1 23 14 is_stmt 0 view .LVU15
+  64 0012 024A     		ldr	r2, .L4
+  65 0014 0249     		ldr	r1, .L4+4
+  66 0016 1160     		str	r1, [r2]
+  67 0018 F6E7     		b	.L2
+  68              	.L5:
+  69 001a 00BF     		.align	2
+  70              	.L4:
+  71 001c 00000000 		.word	heap.0
+  72 0020 00000000 		.word	_end
+  73              		.cfi_endproc
+  74              	.LFE0:
+  76              		.section	.text._close,"ax",%progbits
+  77              		.align	1
+  78              		.global	_close
+  79              		.syntax unified
+  80              		.thumb
+  81              		.thumb_func
+  83              	_close:
+  84              	.LVL4:
+  85              	.LFB1:
+  29:Core/Src/syscalls.c **** 
+  30:Core/Src/syscalls.c **** int _close(int file)                        { (void)file; return -1; }
+ARM GAS  /tmp/ccSleuCs.s 			page 3
+
+
+  86              		.loc 1 30 45 is_stmt 1 view -0
+  87              		.cfi_startproc
+  88              		@ args = 0, pretend = 0, frame = 0
+  89              		@ frame_needed = 0, uses_anonymous_args = 0
+  90              		@ link register save eliminated.
+  91              		.loc 1 30 47 view .LVU17
+  92              		.loc 1 30 59 view .LVU18
+  93              		.loc 1 30 70 is_stmt 0 view .LVU19
+  94 0000 4FF0FF30 		mov	r0, #-1
+  95              	.LVL5:
+  96              		.loc 1 30 70 view .LVU20
+  97 0004 7047     		bx	lr
+  98              		.cfi_endproc
+  99              	.LFE1:
+ 101              		.section	.text._fstat,"ax",%progbits
+ 102              		.align	1
+ 103              		.global	_fstat
+ 104              		.syntax unified
+ 105              		.thumb
+ 106              		.thumb_func
+ 108              	_fstat:
+ 109              	.LVL6:
+ 110              	.LFB2:
+  31:Core/Src/syscalls.c **** int _fstat(int file, struct stat *st)       { (void)file; st->st_mode = S_IFCHR; return 0; }
+ 111              		.loc 1 31 45 is_stmt 1 view -0
+ 112              		.cfi_startproc
+ 113              		@ args = 0, pretend = 0, frame = 0
+ 114              		@ frame_needed = 0, uses_anonymous_args = 0
+ 115              		@ link register save eliminated.
+ 116              		.loc 1 31 47 view .LVU22
+ 117              		.loc 1 31 59 view .LVU23
+ 118              		.loc 1 31 71 is_stmt 0 view .LVU24
+ 119 0000 4FF40053 		mov	r3, #8192
+ 120 0004 4B60     		str	r3, [r1, #4]
+ 121              		.loc 1 31 82 is_stmt 1 view .LVU25
+ 122              		.loc 1 31 92 is_stmt 0 view .LVU26
+ 123 0006 0020     		movs	r0, #0
+ 124              	.LVL7:
+ 125              		.loc 1 31 92 view .LVU27
+ 126 0008 7047     		bx	lr
+ 127              		.cfi_endproc
+ 128              	.LFE2:
+ 130              		.section	.text._isatty,"ax",%progbits
+ 131              		.align	1
+ 132              		.global	_isatty
+ 133              		.syntax unified
+ 134              		.thumb
+ 135              		.thumb_func
+ 137              	_isatty:
+ 138              	.LVL8:
+ 139              	.LFB3:
+  32:Core/Src/syscalls.c **** int _isatty(int file)                       { (void)file; return 1; }
+ 140              		.loc 1 32 45 is_stmt 1 view -0
+ 141              		.cfi_startproc
+ 142              		@ args = 0, pretend = 0, frame = 0
+ 143              		@ frame_needed = 0, uses_anonymous_args = 0
+ 144              		@ link register save eliminated.
+ARM GAS  /tmp/ccSleuCs.s 			page 4
+
+
+ 145              		.loc 1 32 47 view .LVU29
+ 146              		.loc 1 32 59 view .LVU30
+ 147              		.loc 1 32 69 is_stmt 0 view .LVU31
+ 148 0000 0120     		movs	r0, #1
+ 149              	.LVL9:
+ 150              		.loc 1 32 69 view .LVU32
+ 151 0002 7047     		bx	lr
+ 152              		.cfi_endproc
+ 153              	.LFE3:
+ 155              		.section	.text._lseek,"ax",%progbits
+ 156              		.align	1
+ 157              		.global	_lseek
+ 158              		.syntax unified
+ 159              		.thumb
+ 160              		.thumb_func
+ 162              	_lseek:
+ 163              	.LVL10:
+ 164              	.LFB4:
+  33:Core/Src/syscalls.c **** int _lseek(int file, int ptr, int dir)      { (void)file; (void)ptr; (void)dir; return 0; }
+ 165              		.loc 1 33 45 is_stmt 1 view -0
+ 166              		.cfi_startproc
+ 167              		@ args = 0, pretend = 0, frame = 0
+ 168              		@ frame_needed = 0, uses_anonymous_args = 0
+ 169              		@ link register save eliminated.
+ 170              		.loc 1 33 47 view .LVU34
+ 171              		.loc 1 33 59 view .LVU35
+ 172              		.loc 1 33 70 view .LVU36
+ 173              		.loc 1 33 81 view .LVU37
+ 174              		.loc 1 33 91 is_stmt 0 view .LVU38
+ 175 0000 0020     		movs	r0, #0
+ 176              	.LVL11:
+ 177              		.loc 1 33 91 view .LVU39
+ 178 0002 7047     		bx	lr
+ 179              		.cfi_endproc
+ 180              	.LFE4:
+ 182              		.section	.text._read,"ax",%progbits
+ 183              		.align	1
+ 184              		.global	_read
+ 185              		.syntax unified
+ 186              		.thumb
+ 187              		.thumb_func
+ 189              	_read:
+ 190              	.LVL12:
+ 191              	.LFB5:
+  34:Core/Src/syscalls.c **** int _read(int file, char *ptr, int len)     { (void)file; (void)ptr; (void)len; return 0; }
+ 192              		.loc 1 34 45 is_stmt 1 view -0
+ 193              		.cfi_startproc
+ 194              		@ args = 0, pretend = 0, frame = 0
+ 195              		@ frame_needed = 0, uses_anonymous_args = 0
+ 196              		@ link register save eliminated.
+ 197              		.loc 1 34 47 view .LVU41
+ 198              		.loc 1 34 59 view .LVU42
+ 199              		.loc 1 34 70 view .LVU43
+ 200              		.loc 1 34 81 view .LVU44
+ 201              		.loc 1 34 91 is_stmt 0 view .LVU45
+ 202 0000 0020     		movs	r0, #0
+ 203              	.LVL13:
+ARM GAS  /tmp/ccSleuCs.s 			page 5
+
+
+ 204              		.loc 1 34 91 view .LVU46
+ 205 0002 7047     		bx	lr
+ 206              		.cfi_endproc
+ 207              	.LFE5:
+ 209              		.section	.text._write,"ax",%progbits
+ 210              		.align	1
+ 211              		.global	_write
+ 212              		.syntax unified
+ 213              		.thumb
+ 214              		.thumb_func
+ 216              	_write:
+ 217              	.LVL14:
+ 218              	.LFB6:
+  35:Core/Src/syscalls.c **** int _write(int file, char *ptr, int len)    { (void)file; (void)ptr; return len; }
+ 219              		.loc 1 35 45 is_stmt 1 view -0
+ 220              		.cfi_startproc
+ 221              		@ args = 0, pretend = 0, frame = 0
+ 222              		@ frame_needed = 0, uses_anonymous_args = 0
+ 223              		@ link register save eliminated.
+ 224              		.loc 1 35 47 view .LVU48
+ 225              		.loc 1 35 59 view .LVU49
+ 226              		.loc 1 35 70 view .LVU50
+ 227              		.loc 1 35 82 is_stmt 0 view .LVU51
+ 228 0000 1046     		mov	r0, r2
+ 229              	.LVL15:
+ 230              		.loc 1 35 82 view .LVU52
+ 231 0002 7047     		bx	lr
+ 232              		.cfi_endproc
+ 233              	.LFE6:
+ 235              		.section	.text._exit,"ax",%progbits
+ 236              		.align	1
+ 237              		.global	_exit
+ 238              		.syntax unified
+ 239              		.thumb
+ 240              		.thumb_func
+ 242              	_exit:
+ 243              	.LFB7:
+  36:Core/Src/syscalls.c **** void _exit(int status)                      { (void)status; while (1) { } }
+ 244              		.loc 1 36 45 is_stmt 1 view -0
+ 245              		.cfi_startproc
+ 246              		@ Volatile: function does not return.
+ 247              		@ args = 0, pretend = 0, frame = 0
+ 248              		@ frame_needed = 0, uses_anonymous_args = 0
+ 249              		@ link register save eliminated.
+ 250              	.LVL16:
+ 251              	.L13:
+ 252              		.loc 1 36 47 view .LVU54
+ 253              		.loc 1 36 61 view .LVU55
+ 254              		.loc 1 36 73 view .LVU56
+ 255              		.loc 1 36 67 view .LVU57
+ 256 0000 FEE7     		b	.L13
+ 257              		.cfi_endproc
+ 258              	.LFE7:
+ 260              		.section	.text._kill,"ax",%progbits
+ 261              		.align	1
+ 262              		.global	_kill
+ 263              		.syntax unified
+ARM GAS  /tmp/ccSleuCs.s 			page 6
+
+
+ 264              		.thumb
+ 265              		.thumb_func
+ 267              	_kill:
+ 268              	.LVL17:
+ 269              	.LFB8:
+  37:Core/Src/syscalls.c **** int _kill(int pid, int sig)                 { (void)pid; (void)sig; errno = EINVAL; return -1; }
+ 270              		.loc 1 37 45 view -0
+ 271              		.cfi_startproc
+ 272              		@ args = 0, pretend = 0, frame = 0
+ 273              		@ frame_needed = 0, uses_anonymous_args = 0
+ 274              		.loc 1 37 45 is_stmt 0 view .LVU59
+ 275 0000 08B5     		push	{r3, lr}
+ 276              	.LCFI0:
+ 277              		.cfi_def_cfa_offset 8
+ 278              		.cfi_offset 3, -8
+ 279              		.cfi_offset 14, -4
+ 280              		.loc 1 37 47 is_stmt 1 view .LVU60
+ 281              		.loc 1 37 58 view .LVU61
+ 282              		.loc 1 37 69 view .LVU62
+ 283 0002 FFF7FEFF 		bl	__errno
+ 284              	.LVL18:
+ 285              		.loc 1 37 75 is_stmt 0 discriminator 1 view .LVU63
+ 286 0006 1623     		movs	r3, #22
+ 287 0008 0360     		str	r3, [r0]
+ 288              		.loc 1 37 85 is_stmt 1 discriminator 1 view .LVU64
+ 289              		.loc 1 37 96 is_stmt 0 view .LVU65
+ 290 000a 4FF0FF30 		mov	r0, #-1
+ 291 000e 08BD     		pop	{r3, pc}
+ 292              		.cfi_endproc
+ 293              	.LFE8:
+ 295              		.section	.text._getpid,"ax",%progbits
+ 296              		.align	1
+ 297              		.global	_getpid
+ 298              		.syntax unified
+ 299              		.thumb
+ 300              		.thumb_func
+ 302              	_getpid:
+ 303              	.LFB9:
+  38:Core/Src/syscalls.c **** int _getpid(void)                           { return 1; }
+ 304              		.loc 1 38 45 is_stmt 1 view -0
+ 305              		.cfi_startproc
+ 306              		@ args = 0, pretend = 0, frame = 0
+ 307              		@ frame_needed = 0, uses_anonymous_args = 0
+ 308              		@ link register save eliminated.
+ 309              		.loc 1 38 47 view .LVU67
+ 310              		.loc 1 38 57 is_stmt 0 view .LVU68
+ 311 0000 0120     		movs	r0, #1
+ 312 0002 7047     		bx	lr
+ 313              		.cfi_endproc
+ 314              	.LFE9:
+ 316              		.section	.bss.heap.0,"aw",%nobits
+ 317              		.align	2
+ 320              	heap.0:
+ 321 0000 00000000 		.space	4
+ 322              		.text
+ 323              	.Letext0:
+ 324              		.file 2 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ARM GAS  /tmp/ccSleuCs.s 			page 7
+
+
+ 325              		.file 3 "/usr/arm-none-eabi/include/sys/_types.h"
+ 326              		.file 4 "/usr/arm-none-eabi/include/sys/_timeval.h"
+ 327              		.file 5 "/usr/arm-none-eabi/include/sys/_timespec.h"
+ 328              		.file 6 "/usr/arm-none-eabi/include/sys/types.h"
+ 329              		.file 7 "/usr/arm-none-eabi/include/sys/stat.h"
+ 330              		.file 8 "/usr/arm-none-eabi/include/sys/errno.h"
+ARM GAS  /tmp/ccSleuCs.s 			page 8
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 syscalls.c
+     /tmp/ccSleuCs.s:21     .text._sbrk:00000000 $t
+     /tmp/ccSleuCs.s:27     .text._sbrk:00000000 _sbrk
+     /tmp/ccSleuCs.s:71     .text._sbrk:0000001c $d
+     /tmp/ccSleuCs.s:320    .bss.heap.0:00000000 heap.0
+     /tmp/ccSleuCs.s:77     .text._close:00000000 $t
+     /tmp/ccSleuCs.s:83     .text._close:00000000 _close
+     /tmp/ccSleuCs.s:102    .text._fstat:00000000 $t
+     /tmp/ccSleuCs.s:108    .text._fstat:00000000 _fstat
+     /tmp/ccSleuCs.s:131    .text._isatty:00000000 $t
+     /tmp/ccSleuCs.s:137    .text._isatty:00000000 _isatty
+     /tmp/ccSleuCs.s:156    .text._lseek:00000000 $t
+     /tmp/ccSleuCs.s:162    .text._lseek:00000000 _lseek
+     /tmp/ccSleuCs.s:183    .text._read:00000000 $t
+     /tmp/ccSleuCs.s:189    .text._read:00000000 _read
+     /tmp/ccSleuCs.s:210    .text._write:00000000 $t
+     /tmp/ccSleuCs.s:216    .text._write:00000000 _write
+     /tmp/ccSleuCs.s:236    .text._exit:00000000 $t
+     /tmp/ccSleuCs.s:242    .text._exit:00000000 _exit
+     /tmp/ccSleuCs.s:261    .text._kill:00000000 $t
+     /tmp/ccSleuCs.s:267    .text._kill:00000000 _kill
+     /tmp/ccSleuCs.s:296    .text._getpid:00000000 $t
+     /tmp/ccSleuCs.s:302    .text._getpid:00000000 _getpid
+     /tmp/ccSleuCs.s:317    .bss.heap.0:00000000 $d
+
+UNDEFINED SYMBOLS
+_end
+__errno

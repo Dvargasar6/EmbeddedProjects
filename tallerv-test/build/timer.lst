@@ -1,0 +1,551 @@
+ARM GAS  /tmp/cck4er1H.s 			page 1
+
+
+   1              		.cpu cortex-m4
+   2              		.arch armv7e-m
+   3              		.fpu fpv4-sp-d16
+   4              		.eabi_attribute 27, 1
+   5              		.eabi_attribute 28, 1
+   6              		.eabi_attribute 20, 1
+   7              		.eabi_attribute 21, 1
+   8              		.eabi_attribute 23, 3
+   9              		.eabi_attribute 24, 1
+  10              		.eabi_attribute 25, 1
+  11              		.eabi_attribute 26, 1
+  12              		.eabi_attribute 30, 1
+  13              		.eabi_attribute 34, 1
+  14              		.eabi_attribute 18, 4
+  15              		.file	"timer.c"
+  16              		.text
+  17              	.Ltext0:
+  18              		.cfi_sections	.debug_frame
+  19              		.file 1 "Core/Src/timer.c"
+  20              		.section	.text.timer_init,"ax",%progbits
+  21              		.align	1
+  22              		.global	timer_init
+  23              		.syntax unified
+  24              		.thumb
+  25              		.thumb_func
+  27              	timer_init:
+  28              	.LFB268:
+   1:Core/Src/timer.c **** /*
+   2:Core/Src/timer.c ****  * timer.c
+   3:Core/Src/timer.c ****  * Configuracion de TIM3 (LED a 250 ms) y TIM4 (base de tiempo de 100 ms).
+   4:Core/Src/timer.c ****  *
+   5:Core/Src/timer.c ****  * Calculo de la temporizacion:
+   6:Core/Src/timer.c ****  *
+   7:Core/Src/timer.c ****  *   f_TIM = f_APB1 * 2 = 50 MHz * 2 = 100 MHz
+   8:Core/Src/timer.c ****  *   f_cnt = f_TIM / (PSC + 1)
+   9:Core/Src/timer.c ****  *   T     = (ARR + 1) / f_cnt
+  10:Core/Src/timer.c ****  *
+  11:Core/Src/timer.c ****  * TIM3: PSC = 9999  -> f_cnt = 100 MHz / 10000 = 10 kHz (paso de 100 us)
+  12:Core/Src/timer.c ****  *       ARR = 2499  -> T = 2500 / 10 kHz = 250 ms
+  13:Core/Src/timer.c ****  *
+  14:Core/Src/timer.c ****  * TIM4: PSC = 9999  -> f_cnt = 10 kHz
+  15:Core/Src/timer.c ****  *       ARR = 999   -> T = 1000 / 10 kHz = 100 ms
+  16:Core/Src/timer.c ****  *
+  17:Core/Src/timer.c ****  * Se eligen PSC y ARR de forma que ARR quede lo mas grande posible dentro de
+  18:Core/Src/timer.c ****  * los 16 bits: cuanto mayor es ARR, mejor es la resolucion del periodo.
+  19:Core/Src/timer.c ****  */
+  20:Core/Src/timer.c **** #include "timer.h"
+  21:Core/Src/timer.c **** #include "gpio.h"
+  22:Core/Src/timer.c **** #include "adc_joystick.h"
+  23:Core/Src/timer.c **** #include "fsm.h"
+  24:Core/Src/timer.c **** 
+  25:Core/Src/timer.c **** TIM_HandleTypeDef htim3;   /* instancia global: la ISR necesita acceder a ella */
+  26:Core/Src/timer.c **** TIM_HandleTypeDef htim4;
+  27:Core/Src/timer.c **** 
+  28:Core/Src/timer.c **** void timer_init(void)
+  29:Core/Src/timer.c **** {
+  29              		.loc 1 29 1 view -0
+ARM GAS  /tmp/cck4er1H.s 			page 2
+
+
+  30              		.cfi_startproc
+  31              		@ args = 0, pretend = 0, frame = 32
+  32              		@ frame_needed = 0, uses_anonymous_args = 0
+  33 0000 00B5     		push	{lr}
+  34              	.LCFI0:
+  35              		.cfi_def_cfa_offset 4
+  36              		.cfi_offset 14, -4
+  37 0002 89B0     		sub	sp, sp, #36
+  38              	.LCFI1:
+  39              		.cfi_def_cfa_offset 40
+  30:Core/Src/timer.c ****     TIM_ClockConfigTypeDef  src  = {0};  /* fuente de reloj del contador   */
+  40              		.loc 1 30 5 view .LVU1
+  41              		.loc 1 30 29 is_stmt 0 view .LVU2
+  42 0004 0023     		movs	r3, #0
+  43 0006 0493     		str	r3, [sp, #16]
+  44 0008 0593     		str	r3, [sp, #20]
+  45 000a 0693     		str	r3, [sp, #24]
+  46 000c 0793     		str	r3, [sp, #28]
+  31:Core/Src/timer.c ****     TIM_MasterConfigTypeDef mst  = {0};  /* configuracion maestro/esclavo  */
+  47              		.loc 1 31 5 is_stmt 1 view .LVU3
+  48              		.loc 1 31 29 is_stmt 0 view .LVU4
+  49 000e 0293     		str	r3, [sp, #8]
+  50 0010 0393     		str	r3, [sp, #12]
+  32:Core/Src/timer.c **** 
+  33:Core/Src/timer.c ****     /* ================= TIM3: parpadeo del LED cada 250 ms ============== */
+  34:Core/Src/timer.c ****     __HAL_RCC_TIM3_CLK_ENABLE();         /* reloj del periferico TIM3      */
+  51              		.loc 1 34 5 is_stmt 1 view .LVU5
+  52              	.LBB2:
+  53              		.loc 1 34 5 view .LVU6
+  54 0012 0093     		str	r3, [sp]
+  55              		.loc 1 34 5 view .LVU7
+  56 0014 3E4A     		ldr	r2, .L15
+  57 0016 116C     		ldr	r1, [r2, #64]
+  58 0018 41F00201 		orr	r1, r1, #2
+  59 001c 1164     		str	r1, [r2, #64]
+  60              		.loc 1 34 5 view .LVU8
+  61 001e 126C     		ldr	r2, [r2, #64]
+  62 0020 02F00202 		and	r2, r2, #2
+  63 0024 0092     		str	r2, [sp]
+  64              		.loc 1 34 5 view .LVU9
+  65 0026 009A     		ldr	r2, [sp]
+  66              	.LBE2:
+  67              		.loc 1 34 5 view .LVU10
+  35:Core/Src/timer.c **** 
+  36:Core/Src/timer.c ****     htim3.Instance           = TIM3;
+  68              		.loc 1 36 5 view .LVU11
+  69              		.loc 1 36 30 is_stmt 0 view .LVU12
+  70 0028 3A48     		ldr	r0, .L15+4
+  71 002a 3B4A     		ldr	r2, .L15+8
+  72 002c 0260     		str	r2, [r0]
+  37:Core/Src/timer.c ****     htim3.Init.Prescaler     = 10000U - 1U;  /* divide 100 MHz hasta 10 kHz */
+  73              		.loc 1 37 5 is_stmt 1 view .LVU13
+  74              		.loc 1 37 30 is_stmt 0 view .LVU14
+  75 002e 42F20F72 		movw	r2, #9999
+  76 0032 4260     		str	r2, [r0, #4]
+  38:Core/Src/timer.c ****     htim3.Init.CounterMode   = TIM_COUNTERMODE_UP;  /* cuenta 0 -> ARR.
+  77              		.loc 1 38 5 is_stmt 1 view .LVU15
+ARM GAS  /tmp/cck4er1H.s 			page 3
+
+
+  78              		.loc 1 38 30 is_stmt 0 view .LVU16
+  79 0034 8360     		str	r3, [r0, #8]
+  39:Core/Src/timer.c ****                                         Alternativas: DOWN, CENTERALIGNED1/2/3 */
+  40:Core/Src/timer.c ****     htim3.Init.Period        = 2500U - 1U;   /* 2500 pasos de 100 us = 250 ms */
+  80              		.loc 1 40 5 is_stmt 1 view .LVU17
+  81              		.loc 1 40 30 is_stmt 0 view .LVU18
+  82 0036 40F6C312 		movw	r2, #2499
+  83 003a C260     		str	r2, [r0, #12]
+  41:Core/Src/timer.c ****     htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;  /* divisor del filtro
+  84              		.loc 1 41 5 is_stmt 1 view .LVU19
+  85              		.loc 1 41 30 is_stmt 0 view .LVU20
+  86 003c 0361     		str	r3, [r0, #16]
+  42:Core/Src/timer.c ****                                         digital de las entradas, no del contador */
+  43:Core/Src/timer.c ****     htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  87              		.loc 1 43 5 is_stmt 1 view .LVU21
+  88              		.loc 1 43 34 is_stmt 0 view .LVU22
+  89 003e 8361     		str	r3, [r0, #24]
+  44:Core/Src/timer.c ****                                         /* ARR se escribe de inmediato; con
+  45:Core/Src/timer.c ****                                            PRELOAD_ENABLE se aplicaria en el
+  46:Core/Src/timer.c ****                                            siguiente evento de actualizacion */
+  47:Core/Src/timer.c **** 
+  48:Core/Src/timer.c ****     if (HAL_TIM_Base_Init(&htim3) != HAL_OK) {
+  90              		.loc 1 48 5 is_stmt 1 view .LVU23
+  91              		.loc 1 48 9 is_stmt 0 view .LVU24
+  92 0040 FFF7FEFF 		bl	HAL_TIM_Base_Init
+  93              	.LVL0:
+  94              		.loc 1 48 8 discriminator 1 view .LVU25
+  95 0044 0028     		cmp	r0, #0
+  96 0046 51D1     		bne	.L9
+  97              	.L2:
+  49:Core/Src/timer.c ****         Error_Handler();
+  50:Core/Src/timer.c ****     }
+  51:Core/Src/timer.c **** 
+  52:Core/Src/timer.c ****     /* Reloj interno del microcontrolador como fuente del contador.
+  53:Core/Src/timer.c ****        Alternativas: ETR externo, o el reloj de otro temporizador (ITRx). */
+  54:Core/Src/timer.c ****     src.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  98              		.loc 1 54 5 is_stmt 1 view .LVU26
+  99              		.loc 1 54 21 is_stmt 0 view .LVU27
+ 100 0048 4FF48053 		mov	r3, #4096
+ 101 004c 0493     		str	r3, [sp, #16]
+  55:Core/Src/timer.c ****     if (HAL_TIM_ConfigClockSource(&htim3, &src) != HAL_OK) {
+ 102              		.loc 1 55 5 is_stmt 1 view .LVU28
+ 103              		.loc 1 55 9 is_stmt 0 view .LVU29
+ 104 004e 04A9     		add	r1, sp, #16
+ 105 0050 3048     		ldr	r0, .L15+4
+ 106 0052 FFF7FEFF 		bl	HAL_TIM_ConfigClockSource
+ 107              	.LVL1:
+ 108              		.loc 1 55 8 discriminator 1 view .LVU30
+ 109 0056 0028     		cmp	r0, #0
+ 110 0058 4BD1     		bne	.L10
+ 111              	.L3:
+  56:Core/Src/timer.c ****         Error_Handler();
+  57:Core/Src/timer.c ****     }
+  58:Core/Src/timer.c **** 
+  59:Core/Src/timer.c ****     /* TIM3 no dispara a ningun otro periferico: TRGO en RESET */
+  60:Core/Src/timer.c ****     mst.MasterOutputTrigger = TIM_TRGO_RESET;
+ 112              		.loc 1 60 5 is_stmt 1 view .LVU31
+ARM GAS  /tmp/cck4er1H.s 			page 4
+
+
+ 113              		.loc 1 60 29 is_stmt 0 view .LVU32
+ 114 005a 0023     		movs	r3, #0
+ 115 005c 0293     		str	r3, [sp, #8]
+  61:Core/Src/timer.c ****     mst.MasterSlaveMode     = TIM_MASTERSLAVEMODE_DISABLE;
+ 116              		.loc 1 61 5 is_stmt 1 view .LVU33
+ 117              		.loc 1 61 29 is_stmt 0 view .LVU34
+ 118 005e 0393     		str	r3, [sp, #12]
+  62:Core/Src/timer.c ****     if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &mst) != HAL_OK) {
+ 119              		.loc 1 62 5 is_stmt 1 view .LVU35
+ 120              		.loc 1 62 9 is_stmt 0 view .LVU36
+ 121 0060 02A9     		add	r1, sp, #8
+ 122 0062 2C48     		ldr	r0, .L15+4
+ 123 0064 FFF7FEFF 		bl	HAL_TIMEx_MasterConfigSynchronization
+ 124              	.LVL2:
+ 125              		.loc 1 62 8 discriminator 1 view .LVU37
+ 126 0068 0028     		cmp	r0, #0
+ 127 006a 45D1     		bne	.L11
+ 128              	.L4:
+  63:Core/Src/timer.c ****         Error_Handler();
+  64:Core/Src/timer.c ****     }
+  65:Core/Src/timer.c **** 
+  66:Core/Src/timer.c ****     /* ================= TIM4: base de tiempo de 100 ms ================== */
+  67:Core/Src/timer.c ****     __HAL_RCC_TIM4_CLK_ENABLE();
+ 129              		.loc 1 67 5 is_stmt 1 view .LVU38
+ 130              	.LBB3:
+ 131              		.loc 1 67 5 view .LVU39
+ 132 006c 0023     		movs	r3, #0
+ 133 006e 0193     		str	r3, [sp, #4]
+ 134              		.loc 1 67 5 view .LVU40
+ 135 0070 274A     		ldr	r2, .L15
+ 136 0072 116C     		ldr	r1, [r2, #64]
+ 137 0074 41F00401 		orr	r1, r1, #4
+ 138 0078 1164     		str	r1, [r2, #64]
+ 139              		.loc 1 67 5 view .LVU41
+ 140 007a 126C     		ldr	r2, [r2, #64]
+ 141 007c 02F00402 		and	r2, r2, #4
+ 142 0080 0192     		str	r2, [sp, #4]
+ 143              		.loc 1 67 5 view .LVU42
+ 144 0082 019A     		ldr	r2, [sp, #4]
+ 145              	.LBE3:
+ 146              		.loc 1 67 5 view .LVU43
+  68:Core/Src/timer.c **** 
+  69:Core/Src/timer.c ****     htim4.Instance               = TIM4;
+ 147              		.loc 1 69 5 view .LVU44
+ 148              		.loc 1 69 34 is_stmt 0 view .LVU45
+ 149 0084 2548     		ldr	r0, .L15+12
+ 150 0086 264A     		ldr	r2, .L15+16
+ 151 0088 0260     		str	r2, [r0]
+  70:Core/Src/timer.c ****     htim4.Init.Prescaler         = 10000U - 1U;   /* 10 kHz            */
+ 152              		.loc 1 70 5 is_stmt 1 view .LVU46
+ 153              		.loc 1 70 34 is_stmt 0 view .LVU47
+ 154 008a 42F20F72 		movw	r2, #9999
+ 155 008e 4260     		str	r2, [r0, #4]
+  71:Core/Src/timer.c ****     htim4.Init.CounterMode       = TIM_COUNTERMODE_UP;
+ 156              		.loc 1 71 5 is_stmt 1 view .LVU48
+ 157              		.loc 1 71 34 is_stmt 0 view .LVU49
+ 158 0090 8360     		str	r3, [r0, #8]
+ARM GAS  /tmp/cck4er1H.s 			page 5
+
+
+  72:Core/Src/timer.c ****     htim4.Init.Period            = 1000U - 1U;    /* 1000 * 100 us = 100 ms */
+ 159              		.loc 1 72 5 is_stmt 1 view .LVU50
+ 160              		.loc 1 72 34 is_stmt 0 view .LVU51
+ 161 0092 40F2E732 		movw	r2, #999
+ 162 0096 C260     		str	r2, [r0, #12]
+  73:Core/Src/timer.c ****     htim4.Init.ClockDivision     = TIM_CLOCKDIVISION_DIV1;
+ 163              		.loc 1 73 5 is_stmt 1 view .LVU52
+ 164              		.loc 1 73 34 is_stmt 0 view .LVU53
+ 165 0098 0361     		str	r3, [r0, #16]
+  74:Core/Src/timer.c ****     htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+ 166              		.loc 1 74 5 is_stmt 1 view .LVU54
+ 167              		.loc 1 74 34 is_stmt 0 view .LVU55
+ 168 009a 8361     		str	r3, [r0, #24]
+  75:Core/Src/timer.c **** 
+  76:Core/Src/timer.c ****     if (HAL_TIM_Base_Init(&htim4) != HAL_OK) {
+ 169              		.loc 1 76 5 is_stmt 1 view .LVU56
+ 170              		.loc 1 76 9 is_stmt 0 view .LVU57
+ 171 009c FFF7FEFF 		bl	HAL_TIM_Base_Init
+ 172              	.LVL3:
+ 173              		.loc 1 76 8 discriminator 1 view .LVU58
+ 174 00a0 68BB     		cbnz	r0, .L12
+ 175              	.L5:
+  77:Core/Src/timer.c ****         Error_Handler();
+  78:Core/Src/timer.c ****     }
+  79:Core/Src/timer.c ****     src.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+ 176              		.loc 1 79 5 is_stmt 1 view .LVU59
+ 177              		.loc 1 79 21 is_stmt 0 view .LVU60
+ 178 00a2 4FF48053 		mov	r3, #4096
+ 179 00a6 0493     		str	r3, [sp, #16]
+  80:Core/Src/timer.c ****     if (HAL_TIM_ConfigClockSource(&htim4, &src) != HAL_OK) {
+ 180              		.loc 1 80 5 is_stmt 1 view .LVU61
+ 181              		.loc 1 80 9 is_stmt 0 view .LVU62
+ 182 00a8 04A9     		add	r1, sp, #16
+ 183 00aa 1C48     		ldr	r0, .L15+12
+ 184 00ac FFF7FEFF 		bl	HAL_TIM_ConfigClockSource
+ 185              	.LVL4:
+ 186              		.loc 1 80 8 discriminator 1 view .LVU63
+ 187 00b0 40BB     		cbnz	r0, .L13
+ 188              	.L6:
+  81:Core/Src/timer.c ****         Error_Handler();
+  82:Core/Src/timer.c ****     }
+  83:Core/Src/timer.c ****     if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &mst) != HAL_OK) {
+ 189              		.loc 1 83 5 is_stmt 1 view .LVU64
+ 190              		.loc 1 83 9 is_stmt 0 view .LVU65
+ 191 00b2 02A9     		add	r1, sp, #8
+ 192 00b4 1948     		ldr	r0, .L15+12
+ 193 00b6 FFF7FEFF 		bl	HAL_TIMEx_MasterConfigSynchronization
+ 194              	.LVL5:
+ 195              		.loc 1 83 8 discriminator 1 view .LVU66
+ 196 00ba 30BB     		cbnz	r0, .L14
+ 197              	.L7:
+  84:Core/Src/timer.c ****         Error_Handler();
+  85:Core/Src/timer.c ****     }
+  86:Core/Src/timer.c **** 
+  87:Core/Src/timer.c ****     /* ================= Interrupciones y arranque ======================= */
+  88:Core/Src/timer.c ****     /* Prioridad 7: por debajo de la UART (5) y del ADC (6) */
+  89:Core/Src/timer.c ****     HAL_NVIC_SetPriority(TIM3_IRQn, 7, 0);
+ARM GAS  /tmp/cck4er1H.s 			page 6
+
+
+ 198              		.loc 1 89 5 is_stmt 1 view .LVU67
+ 199 00bc 0022     		movs	r2, #0
+ 200 00be 0721     		movs	r1, #7
+ 201 00c0 1D20     		movs	r0, #29
+ 202 00c2 FFF7FEFF 		bl	HAL_NVIC_SetPriority
+ 203              	.LVL6:
+  90:Core/Src/timer.c ****     HAL_NVIC_EnableIRQ(TIM3_IRQn);
+ 204              		.loc 1 90 5 view .LVU68
+ 205 00c6 1D20     		movs	r0, #29
+ 206 00c8 FFF7FEFF 		bl	HAL_NVIC_EnableIRQ
+ 207              	.LVL7:
+  91:Core/Src/timer.c ****     HAL_NVIC_SetPriority(TIM4_IRQn, 7, 0);
+ 208              		.loc 1 91 5 view .LVU69
+ 209 00cc 0022     		movs	r2, #0
+ 210 00ce 0721     		movs	r1, #7
+ 211 00d0 1E20     		movs	r0, #30
+ 212 00d2 FFF7FEFF 		bl	HAL_NVIC_SetPriority
+ 213              	.LVL8:
+  92:Core/Src/timer.c ****     HAL_NVIC_EnableIRQ(TIM4_IRQn);
+ 214              		.loc 1 92 5 view .LVU70
+ 215 00d6 1E20     		movs	r0, #30
+ 216 00d8 FFF7FEFF 		bl	HAL_NVIC_EnableIRQ
+ 217              	.LVL9:
+  93:Core/Src/timer.c **** 
+  94:Core/Src/timer.c ****     /* _IT arranca el contador y habilita la interrupcion de actualizacion.
+  95:Core/Src/timer.c ****        La variante HAL_TIM_Base_Start() arrancaria el contador sin interrupcion,
+  96:Core/Src/timer.c ****        obligando a sondear el flag, lo que el enunciado prohibe. */
+  97:Core/Src/timer.c ****     HAL_TIM_Base_Start_IT(&htim3);
+ 218              		.loc 1 97 5 view .LVU71
+ 219 00dc 0D48     		ldr	r0, .L15+4
+ 220 00de FFF7FEFF 		bl	HAL_TIM_Base_Start_IT
+ 221              	.LVL10:
+  98:Core/Src/timer.c ****     HAL_TIM_Base_Start_IT(&htim4);
+ 222              		.loc 1 98 5 view .LVU72
+ 223 00e2 0E48     		ldr	r0, .L15+12
+ 224 00e4 FFF7FEFF 		bl	HAL_TIM_Base_Start_IT
+ 225              	.LVL11:
+  99:Core/Src/timer.c **** }
+ 226              		.loc 1 99 1 is_stmt 0 view .LVU73
+ 227 00e8 09B0     		add	sp, sp, #36
+ 228              	.LCFI2:
+ 229              		.cfi_remember_state
+ 230              		.cfi_def_cfa_offset 4
+ 231              		@ sp needed
+ 232 00ea 00BD     		pop	{pc}
+ 233              	.L9:
+ 234              	.LCFI3:
+ 235              		.cfi_restore_state
+  49:Core/Src/timer.c ****     }
+ 236              		.loc 1 49 9 is_stmt 1 view .LVU74
+ 237 00ec FFF7FEFF 		bl	Error_Handler
+ 238              	.LVL12:
+ 239 00f0 AAE7     		b	.L2
+ 240              	.L10:
+  56:Core/Src/timer.c ****     }
+ 241              		.loc 1 56 9 view .LVU75
+ 242 00f2 FFF7FEFF 		bl	Error_Handler
+ARM GAS  /tmp/cck4er1H.s 			page 7
+
+
+ 243              	.LVL13:
+ 244 00f6 B0E7     		b	.L3
+ 245              	.L11:
+  63:Core/Src/timer.c ****     }
+ 246              		.loc 1 63 9 view .LVU76
+ 247 00f8 FFF7FEFF 		bl	Error_Handler
+ 248              	.LVL14:
+ 249 00fc B6E7     		b	.L4
+ 250              	.L12:
+  77:Core/Src/timer.c ****     }
+ 251              		.loc 1 77 9 view .LVU77
+ 252 00fe FFF7FEFF 		bl	Error_Handler
+ 253              	.LVL15:
+ 254 0102 CEE7     		b	.L5
+ 255              	.L13:
+  81:Core/Src/timer.c ****     }
+ 256              		.loc 1 81 9 view .LVU78
+ 257 0104 FFF7FEFF 		bl	Error_Handler
+ 258              	.LVL16:
+ 259 0108 D3E7     		b	.L6
+ 260              	.L14:
+  84:Core/Src/timer.c ****     }
+ 261              		.loc 1 84 9 view .LVU79
+ 262 010a FFF7FEFF 		bl	Error_Handler
+ 263              	.LVL17:
+ 264 010e D5E7     		b	.L7
+ 265              	.L16:
+ 266              		.align	2
+ 267              	.L15:
+ 268 0110 00380240 		.word	1073887232
+ 269 0114 00000000 		.word	htim3
+ 270 0118 00040040 		.word	1073742848
+ 271 011c 00000000 		.word	htim4
+ 272 0120 00080040 		.word	1073743872
+ 273              		.cfi_endproc
+ 274              	.LFE268:
+ 276              		.section	.text.HAL_TIM_PeriodElapsedCallback,"ax",%progbits
+ 277              		.align	1
+ 278              		.global	HAL_TIM_PeriodElapsedCallback
+ 279              		.syntax unified
+ 280              		.thumb
+ 281              		.thumb_func
+ 283              	HAL_TIM_PeriodElapsedCallback:
+ 284              	.LVL18:
+ 285              	.LFB269:
+ 100:Core/Src/timer.c **** 
+ 101:Core/Src/timer.c **** /*
+ 102:Core/Src/timer.c ****  * HAL_TIM_PeriodElapsedCallback
+ 103:Core/Src/timer.c ****  * Callback comun a todos los temporizadores: la HAL la invoca desde
+ 104:Core/Src/timer.c ****  * HAL_TIM_IRQHandler cuando el contador desborda. Se distingue el origen
+ 105:Core/Src/timer.c ****  * comparando el puntero de instancia.
+ 106:Core/Src/timer.c ****  *
+ 107:Core/Src/timer.c ****  * Esta funcion se ejecuta en contexto de interrupcion: debe ser breve y no
+ 108:Core/Src/timer.c ****  * puede usar HAL_Delay ni operaciones de I2C.
+ 109:Core/Src/timer.c ****  */
+ 110:Core/Src/timer.c **** void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
+ 111:Core/Src/timer.c **** {
+ARM GAS  /tmp/cck4er1H.s 			page 8
+
+
+ 286              		.loc 1 111 1 view -0
+ 287              		.cfi_startproc
+ 288              		@ args = 0, pretend = 0, frame = 0
+ 289              		@ frame_needed = 0, uses_anonymous_args = 0
+ 290              		.loc 1 111 1 is_stmt 0 view .LVU81
+ 291 0000 08B5     		push	{r3, lr}
+ 292              	.LCFI4:
+ 293              		.cfi_def_cfa_offset 8
+ 294              		.cfi_offset 3, -8
+ 295              		.cfi_offset 14, -4
+ 112:Core/Src/timer.c ****     if (htim->Instance == TIM3) {
+ 296              		.loc 1 112 5 is_stmt 1 view .LVU82
+ 297              		.loc 1 112 13 is_stmt 0 view .LVU83
+ 298 0002 0368     		ldr	r3, [r0]
+ 299              		.loc 1 112 8 view .LVU84
+ 300 0004 074A     		ldr	r2, .L23
+ 301 0006 9342     		cmp	r3, r2
+ 302 0008 03D0     		beq	.L21
+ 113:Core/Src/timer.c ****         /* Cada 250 ms: conmuta el LED de PH1 */
+ 114:Core/Src/timer.c ****         gpio_led_toggle();
+ 115:Core/Src/timer.c ****     }
+ 116:Core/Src/timer.c ****     else if (htim->Instance == TIM4) {
+ 303              		.loc 1 116 10 is_stmt 1 view .LVU85
+ 304              		.loc 1 116 13 is_stmt 0 view .LVU86
+ 305 000a 074A     		ldr	r2, .L23+4
+ 306 000c 9342     		cmp	r3, r2
+ 307 000e 03D0     		beq	.L22
+ 308              	.LVL19:
+ 309              	.L17:
+ 117:Core/Src/timer.c ****         /* Cada 100 ms: lanza la lectura del joystick y avisa a la FSM */
+ 118:Core/Src/timer.c ****         adc_joystick_start();          /* arranca la conversion por interrupcion */
+ 119:Core/Src/timer.c ****         fsm_post_event(EV_TICK_100MS); /* encola el evento periodico             */
+ 120:Core/Src/timer.c ****     }
+ 121:Core/Src/timer.c **** }
+ 310              		.loc 1 121 1 view .LVU87
+ 311 0010 08BD     		pop	{r3, pc}
+ 312              	.LVL20:
+ 313              	.L21:
+ 114:Core/Src/timer.c ****     }
+ 314              		.loc 1 114 9 is_stmt 1 view .LVU88
+ 315 0012 FFF7FEFF 		bl	gpio_led_toggle
+ 316              	.LVL21:
+ 114:Core/Src/timer.c ****     }
+ 317              		.loc 1 114 9 is_stmt 0 view .LVU89
+ 318 0016 FBE7     		b	.L17
+ 319              	.LVL22:
+ 320              	.L22:
+ 118:Core/Src/timer.c ****         fsm_post_event(EV_TICK_100MS); /* encola el evento periodico             */
+ 321              		.loc 1 118 9 is_stmt 1 view .LVU90
+ 322 0018 FFF7FEFF 		bl	adc_joystick_start
+ 323              	.LVL23:
+ 119:Core/Src/timer.c ****     }
+ 324              		.loc 1 119 9 view .LVU91
+ 325 001c 0D20     		movs	r0, #13
+ 326 001e FFF7FEFF 		bl	fsm_post_event
+ 327              	.LVL24:
+ 328              		.loc 1 121 1 is_stmt 0 view .LVU92
+ARM GAS  /tmp/cck4er1H.s 			page 9
+
+
+ 329 0022 F5E7     		b	.L17
+ 330              	.L24:
+ 331              		.align	2
+ 332              	.L23:
+ 333 0024 00040040 		.word	1073742848
+ 334 0028 00080040 		.word	1073743872
+ 335              		.cfi_endproc
+ 336              	.LFE269:
+ 338              		.global	htim4
+ 339              		.section	.bss.htim4,"aw",%nobits
+ 340              		.align	2
+ 343              	htim4:
+ 344 0000 00000000 		.space	72
+ 344      00000000 
+ 344      00000000 
+ 344      00000000 
+ 344      00000000 
+ 345              		.global	htim3
+ 346              		.section	.bss.htim3,"aw",%nobits
+ 347              		.align	2
+ 350              	htim3:
+ 351 0000 00000000 		.space	72
+ 351      00000000 
+ 351      00000000 
+ 351      00000000 
+ 351      00000000 
+ 352              		.text
+ 353              	.Letext0:
+ 354              		.file 2 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h"
+ 355              		.file 3 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 356              		.file 4 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 357              		.file 5 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+ 358              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h"
+ 359              		.file 7 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h"
+ 360              		.file 8 "Core/Inc/timer.h"
+ 361              		.file 9 "Core/Inc/fsm.h"
+ 362              		.file 10 "Core/Inc/adc_joystick.h"
+ 363              		.file 11 "Core/Inc/gpio.h"
+ 364              		.file 12 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_cortex.h"
+ 365              		.file 13 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim_ex.h"
+ 366              		.file 14 "Core/Inc/main.h"
+ARM GAS  /tmp/cck4er1H.s 			page 10
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 timer.c
+     /tmp/cck4er1H.s:21     .text.timer_init:00000000 $t
+     /tmp/cck4er1H.s:27     .text.timer_init:00000000 timer_init
+     /tmp/cck4er1H.s:268    .text.timer_init:00000110 $d
+     /tmp/cck4er1H.s:350    .bss.htim3:00000000 htim3
+     /tmp/cck4er1H.s:343    .bss.htim4:00000000 htim4
+     /tmp/cck4er1H.s:277    .text.HAL_TIM_PeriodElapsedCallback:00000000 $t
+     /tmp/cck4er1H.s:283    .text.HAL_TIM_PeriodElapsedCallback:00000000 HAL_TIM_PeriodElapsedCallback
+     /tmp/cck4er1H.s:333    .text.HAL_TIM_PeriodElapsedCallback:00000024 $d
+     /tmp/cck4er1H.s:340    .bss.htim4:00000000 $d
+     /tmp/cck4er1H.s:347    .bss.htim3:00000000 $d
+
+UNDEFINED SYMBOLS
+HAL_TIM_Base_Init
+HAL_TIM_ConfigClockSource
+HAL_TIMEx_MasterConfigSynchronization
+HAL_NVIC_SetPriority
+HAL_NVIC_EnableIRQ
+HAL_TIM_Base_Start_IT
+Error_Handler
+gpio_led_toggle
+adc_joystick_start
+fsm_post_event
