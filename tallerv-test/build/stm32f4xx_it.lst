@@ -1,4 +1,4 @@
-ARM GAS  /tmp/cckDXlmv.s 			page 1
+ARM GAS  /tmp/cccQW0ZA.s 			page 1
 
 
    1              		.cpu cortex-m4
@@ -58,7 +58,7 @@ ARM GAS  /tmp/cckDXlmv.s 			page 1
   28:Core/Src/stm32f4xx_it.c **** /* ================= Excepciones del nucleo Cortex-M4 ==================== */
   29:Core/Src/stm32f4xx_it.c **** 
   30:Core/Src/stm32f4xx_it.c **** void NMI_Handler(void)        { while (1) { } }  /* no enmascarable        */
-ARM GAS  /tmp/cckDXlmv.s 			page 2
+ARM GAS  /tmp/cccQW0ZA.s 			page 2
 
 
   29              		.loc 1 30 31 view -0
@@ -118,7 +118,7 @@ ARM GAS  /tmp/cckDXlmv.s 			page 1
   85 0000 FEE7     		b	.L6
   86              		.cfi_endproc
   87              	.LFE270:
-ARM GAS  /tmp/cckDXlmv.s 			page 3
+ARM GAS  /tmp/cccQW0ZA.s 			page 3
 
 
   89              		.section	.text.BusFault_Handler,"ax",%progbits
@@ -178,7 +178,7 @@ ARM GAS  /tmp/cckDXlmv.s 			page 1
  145              		.cfi_startproc
  146              		@ args = 0, pretend = 0, frame = 0
  147              		@ frame_needed = 0, uses_anonymous_args = 0
-ARM GAS  /tmp/cckDXlmv.s 			page 4
+ARM GAS  /tmp/cccQW0ZA.s 			page 4
 
 
  148              		@ link register save eliminated.
@@ -238,7 +238,7 @@ ARM GAS  /tmp/cckDXlmv.s 			page 1
   43:Core/Src/stm32f4xx_it.c ****  * tiempo maximo de espera se bloquearia para siempre.
   44:Core/Src/stm32f4xx_it.c ****  */
   45:Core/Src/stm32f4xx_it.c **** void SysTick_Handler(void)
-ARM GAS  /tmp/cckDXlmv.s 			page 5
+ARM GAS  /tmp/cccQW0ZA.s 			page 5
 
 
   46:Core/Src/stm32f4xx_it.c **** {
@@ -298,7 +298,7 @@ ARM GAS  /tmp/cckDXlmv.s 			page 1
  241 0008 08BD     		pop	{r3, pc}
  242              	.L19:
  243 000a 00BF     		.align	2
-ARM GAS  /tmp/cckDXlmv.s 			page 6
+ARM GAS  /tmp/cccQW0ZA.s 			page 6
 
 
  244              	.L18:
@@ -358,7 +358,7 @@ ARM GAS  /tmp/cckDXlmv.s 			page 1
   75:Core/Src/stm32f4xx_it.c ****  * Desbordamiento cada 250 ms. Deriva en HAL_TIM_PeriodElapsedCallback,
   76:Core/Src/stm32f4xx_it.c ****  * que conmuta el LED de PH1.
   77:Core/Src/stm32f4xx_it.c ****  */
-ARM GAS  /tmp/cckDXlmv.s 			page 7
+ARM GAS  /tmp/cccQW0ZA.s 			page 7
 
 
   78:Core/Src/stm32f4xx_it.c **** void TIM3_IRQHandler(void)
@@ -418,7 +418,7 @@ ARM GAS  /tmp/cckDXlmv.s 			page 1
  332              	.LVL4:
   91:Core/Src/stm32f4xx_it.c **** }
  333              		.loc 1 91 1 is_stmt 0 view .LVU40
-ARM GAS  /tmp/cckDXlmv.s 			page 8
+ARM GAS  /tmp/cccQW0ZA.s 			page 8
 
 
  334 0008 08BD     		pop	{r3, pc}
@@ -478,7 +478,7 @@ ARM GAS  /tmp/cckDXlmv.s 			page 1
  106:Core/Src/stm32f4xx_it.c ****  * Despertador periodico de 1 s. Deriva en
  107:Core/Src/stm32f4xx_it.c ****  * HAL_RTCEx_WakeUpTimerEventCallback, definido en rtc.c.
  108:Core/Src/stm32f4xx_it.c ****  */
-ARM GAS  /tmp/cckDXlmv.s 			page 9
+ARM GAS  /tmp/cccQW0ZA.s 			page 9
 
 
  109:Core/Src/stm32f4xx_it.c **** void RTC_WKUP_IRQHandler(void)
@@ -538,7 +538,7 @@ ARM GAS  /tmp/cckDXlmv.s 			page 1
  420 0002 0446     		mov	r4, r0
  123:Core/Src/stm32f4xx_it.c ****     static uint32_t last = 0;    /* marca temporal del ultimo flanco valido */
  421              		.loc 1 123 5 is_stmt 1 view .LVU49
-ARM GAS  /tmp/cckDXlmv.s 			page 10
+ARM GAS  /tmp/cccQW0ZA.s 			page 10
 
 
  124:Core/Src/stm32f4xx_it.c ****     uint32_t now = HAL_GetTick();
@@ -598,7 +598,7 @@ ARM GAS  /tmp/cckDXlmv.s 			page 1
  459 0024 00000000 		.word	last.0
  460              		.cfi_endproc
  461              	.LFE283:
-ARM GAS  /tmp/cckDXlmv.s 			page 11
+ARM GAS  /tmp/cccQW0ZA.s 			page 11
 
 
  463              		.section	.bss.last.0,"aw",%nobits
@@ -625,51 +625,51 @@ ARM GAS  /tmp/cckDXlmv.s 			page 1
  486              		.file 17 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rtc_ex.h"
  487              		.file 18 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_gpio.h"
  488              		.file 19 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h"
-ARM GAS  /tmp/cckDXlmv.s 			page 12
+ARM GAS  /tmp/cccQW0ZA.s 			page 12
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 stm32f4xx_it.c
-     /tmp/cckDXlmv.s:21     .text.NMI_Handler:00000000 $t
-     /tmp/cckDXlmv.s:27     .text.NMI_Handler:00000000 NMI_Handler
-     /tmp/cckDXlmv.s:44     .text.HardFault_Handler:00000000 $t
-     /tmp/cckDXlmv.s:50     .text.HardFault_Handler:00000000 HardFault_Handler
-     /tmp/cckDXlmv.s:67     .text.MemManage_Handler:00000000 $t
-     /tmp/cckDXlmv.s:73     .text.MemManage_Handler:00000000 MemManage_Handler
-     /tmp/cckDXlmv.s:90     .text.BusFault_Handler:00000000 $t
-     /tmp/cckDXlmv.s:96     .text.BusFault_Handler:00000000 BusFault_Handler
-     /tmp/cckDXlmv.s:113    .text.UsageFault_Handler:00000000 $t
-     /tmp/cckDXlmv.s:119    .text.UsageFault_Handler:00000000 UsageFault_Handler
-     /tmp/cckDXlmv.s:136    .text.SVC_Handler:00000000 $t
-     /tmp/cckDXlmv.s:142    .text.SVC_Handler:00000000 SVC_Handler
-     /tmp/cckDXlmv.s:155    .text.DebugMon_Handler:00000000 $t
-     /tmp/cckDXlmv.s:161    .text.DebugMon_Handler:00000000 DebugMon_Handler
-     /tmp/cckDXlmv.s:174    .text.PendSV_Handler:00000000 $t
-     /tmp/cckDXlmv.s:180    .text.PendSV_Handler:00000000 PendSV_Handler
-     /tmp/cckDXlmv.s:193    .text.SysTick_Handler:00000000 $t
-     /tmp/cckDXlmv.s:199    .text.SysTick_Handler:00000000 SysTick_Handler
-     /tmp/cckDXlmv.s:219    .text.USART2_IRQHandler:00000000 $t
-     /tmp/cckDXlmv.s:225    .text.USART2_IRQHandler:00000000 USART2_IRQHandler
-     /tmp/cckDXlmv.s:245    .text.USART2_IRQHandler:0000000c $d
-     /tmp/cckDXlmv.s:250    .text.ADC_IRQHandler:00000000 $t
-     /tmp/cckDXlmv.s:256    .text.ADC_IRQHandler:00000000 ADC_IRQHandler
-     /tmp/cckDXlmv.s:276    .text.ADC_IRQHandler:0000000c $d
-     /tmp/cckDXlmv.s:281    .text.TIM3_IRQHandler:00000000 $t
-     /tmp/cckDXlmv.s:287    .text.TIM3_IRQHandler:00000000 TIM3_IRQHandler
-     /tmp/cckDXlmv.s:307    .text.TIM3_IRQHandler:0000000c $d
-     /tmp/cckDXlmv.s:312    .text.TIM4_IRQHandler:00000000 $t
-     /tmp/cckDXlmv.s:318    .text.TIM4_IRQHandler:00000000 TIM4_IRQHandler
-     /tmp/cckDXlmv.s:338    .text.TIM4_IRQHandler:0000000c $d
-     /tmp/cckDXlmv.s:343    .text.EXTI9_5_IRQHandler:00000000 $t
-     /tmp/cckDXlmv.s:349    .text.EXTI9_5_IRQHandler:00000000 EXTI9_5_IRQHandler
-     /tmp/cckDXlmv.s:370    .text.RTC_WKUP_IRQHandler:00000000 $t
-     /tmp/cckDXlmv.s:376    .text.RTC_WKUP_IRQHandler:00000000 RTC_WKUP_IRQHandler
-     /tmp/cckDXlmv.s:396    .text.RTC_WKUP_IRQHandler:0000000c $d
-     /tmp/cckDXlmv.s:401    .text.HAL_GPIO_EXTI_Callback:00000000 $t
-     /tmp/cckDXlmv.s:407    .text.HAL_GPIO_EXTI_Callback:00000000 HAL_GPIO_EXTI_Callback
-     /tmp/cckDXlmv.s:459    .text.HAL_GPIO_EXTI_Callback:00000024 $d
-     /tmp/cckDXlmv.s:467    .bss.last.0:00000000 last.0
-     /tmp/cckDXlmv.s:464    .bss.last.0:00000000 $d
+     /tmp/cccQW0ZA.s:21     .text.NMI_Handler:00000000 $t
+     /tmp/cccQW0ZA.s:27     .text.NMI_Handler:00000000 NMI_Handler
+     /tmp/cccQW0ZA.s:44     .text.HardFault_Handler:00000000 $t
+     /tmp/cccQW0ZA.s:50     .text.HardFault_Handler:00000000 HardFault_Handler
+     /tmp/cccQW0ZA.s:67     .text.MemManage_Handler:00000000 $t
+     /tmp/cccQW0ZA.s:73     .text.MemManage_Handler:00000000 MemManage_Handler
+     /tmp/cccQW0ZA.s:90     .text.BusFault_Handler:00000000 $t
+     /tmp/cccQW0ZA.s:96     .text.BusFault_Handler:00000000 BusFault_Handler
+     /tmp/cccQW0ZA.s:113    .text.UsageFault_Handler:00000000 $t
+     /tmp/cccQW0ZA.s:119    .text.UsageFault_Handler:00000000 UsageFault_Handler
+     /tmp/cccQW0ZA.s:136    .text.SVC_Handler:00000000 $t
+     /tmp/cccQW0ZA.s:142    .text.SVC_Handler:00000000 SVC_Handler
+     /tmp/cccQW0ZA.s:155    .text.DebugMon_Handler:00000000 $t
+     /tmp/cccQW0ZA.s:161    .text.DebugMon_Handler:00000000 DebugMon_Handler
+     /tmp/cccQW0ZA.s:174    .text.PendSV_Handler:00000000 $t
+     /tmp/cccQW0ZA.s:180    .text.PendSV_Handler:00000000 PendSV_Handler
+     /tmp/cccQW0ZA.s:193    .text.SysTick_Handler:00000000 $t
+     /tmp/cccQW0ZA.s:199    .text.SysTick_Handler:00000000 SysTick_Handler
+     /tmp/cccQW0ZA.s:219    .text.USART2_IRQHandler:00000000 $t
+     /tmp/cccQW0ZA.s:225    .text.USART2_IRQHandler:00000000 USART2_IRQHandler
+     /tmp/cccQW0ZA.s:245    .text.USART2_IRQHandler:0000000c $d
+     /tmp/cccQW0ZA.s:250    .text.ADC_IRQHandler:00000000 $t
+     /tmp/cccQW0ZA.s:256    .text.ADC_IRQHandler:00000000 ADC_IRQHandler
+     /tmp/cccQW0ZA.s:276    .text.ADC_IRQHandler:0000000c $d
+     /tmp/cccQW0ZA.s:281    .text.TIM3_IRQHandler:00000000 $t
+     /tmp/cccQW0ZA.s:287    .text.TIM3_IRQHandler:00000000 TIM3_IRQHandler
+     /tmp/cccQW0ZA.s:307    .text.TIM3_IRQHandler:0000000c $d
+     /tmp/cccQW0ZA.s:312    .text.TIM4_IRQHandler:00000000 $t
+     /tmp/cccQW0ZA.s:318    .text.TIM4_IRQHandler:00000000 TIM4_IRQHandler
+     /tmp/cccQW0ZA.s:338    .text.TIM4_IRQHandler:0000000c $d
+     /tmp/cccQW0ZA.s:343    .text.EXTI9_5_IRQHandler:00000000 $t
+     /tmp/cccQW0ZA.s:349    .text.EXTI9_5_IRQHandler:00000000 EXTI9_5_IRQHandler
+     /tmp/cccQW0ZA.s:370    .text.RTC_WKUP_IRQHandler:00000000 $t
+     /tmp/cccQW0ZA.s:376    .text.RTC_WKUP_IRQHandler:00000000 RTC_WKUP_IRQHandler
+     /tmp/cccQW0ZA.s:396    .text.RTC_WKUP_IRQHandler:0000000c $d
+     /tmp/cccQW0ZA.s:401    .text.HAL_GPIO_EXTI_Callback:00000000 $t
+     /tmp/cccQW0ZA.s:407    .text.HAL_GPIO_EXTI_Callback:00000000 HAL_GPIO_EXTI_Callback
+     /tmp/cccQW0ZA.s:459    .text.HAL_GPIO_EXTI_Callback:00000024 $d
+     /tmp/cccQW0ZA.s:467    .bss.last.0:00000000 last.0
+     /tmp/cccQW0ZA.s:464    .bss.last.0:00000000 $d
 
 UNDEFINED SYMBOLS
 HAL_IncTick
@@ -685,6 +685,6 @@ HAL_RTCEx_WakeUpTimerIRQHandler
 hrtc
 HAL_GetTick
 fsm_post_event
-ARM GAS  /tmp/cckDXlmv.s 			page 13
+ARM GAS  /tmp/cccQW0ZA.s 			page 13
 
 

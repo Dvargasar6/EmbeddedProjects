@@ -1,4 +1,4 @@
-ARM GAS  /tmp/ccMLv4yJ.s 			page 1
+ARM GAS  /tmp/ccvhXUIG.s 			page 1
 
 
    1              		.cpu cortex-m4
@@ -58,7 +58,7 @@ ARM GAS  /tmp/ccMLv4yJ.s 			page 1
   29:Core/Src/rtc.c **** {
   28              		.loc 1 29 1 view -0
   29              		.cfi_startproc
-ARM GAS  /tmp/ccMLv4yJ.s 			page 2
+ARM GAS  /tmp/ccvhXUIG.s 			page 2
 
 
   30              		@ args = 0, pretend = 0, frame = 0
@@ -118,7 +118,7 @@ ARM GAS  /tmp/ccMLv4yJ.s 			page 1
   74 0024 825C     		ldrb	r2, [r0, r2]	@ zero_extendqisi2
   37:Core/Src/rtc.c ****             d[1] == months[i * 3 + 1] &&
   75              		.loc 1 37 39 discriminator 1 view .LVU19
-ARM GAS  /tmp/ccMLv4yJ.s 			page 3
+ARM GAS  /tmp/ccvhXUIG.s 			page 3
 
 
   76 0026 6C2A     		cmp	r2, #108
@@ -178,7 +178,7 @@ ARM GAS  /tmp/ccMLv4yJ.s 			page 1
  119              	.LFE269:
  121              		.section	.text.build_year,"ax",%progbits
  122              		.align	1
-ARM GAS  /tmp/ccMLv4yJ.s 			page 4
+ARM GAS  /tmp/ccvhXUIG.s 			page 4
 
 
  123              		.syntax unified
@@ -209,8 +209,8 @@ ARM GAS  /tmp/ccMLv4yJ.s 			page 1
  143              		.section	.rodata.build_field.str1.4,"aMS",%progbits,1
  144              		.align	2
  145              	.LC0:
- 146 0000 31323A31 		.ascii	"12:13:51\000"
- 146      333A3531 
+ 146 0000 31353A35 		.ascii	"15:51:31\000"
+ 146      313A3331 
  146      00
  147              		.section	.text.build_field,"ax",%progbits
  148              		.align	1
@@ -238,7 +238,7 @@ ARM GAS  /tmp/ccMLv4yJ.s 			page 1
  166              		.loc 1 63 57 view .LVU38
  167 0004 0130     		adds	r0, r0, #1
  168              	.LVL9:
-ARM GAS  /tmp/ccMLv4yJ.s 			page 5
+ARM GAS  /tmp/ccvhXUIG.s 			page 5
 
 
  169              		.loc 1 63 49 view .LVU39
@@ -298,7 +298,7 @@ ARM GAS  /tmp/ccMLv4yJ.s 			page 1
  213              		.cfi_offset 4, -8
  214              		.cfi_offset 14, -4
  215 0002 8CB0     		sub	sp, sp, #48
-ARM GAS  /tmp/ccMLv4yJ.s 			page 6
+ARM GAS  /tmp/ccvhXUIG.s 			page 6
 
 
  216              	.LCFI1:
@@ -358,7 +358,7 @@ ARM GAS  /tmp/ccMLv4yJ.s 			page 1
  250 002a C3F8802E 		str	r2, [r3, #3712]
   88:Core/Src/rtc.c ****         while (__HAL_RCC_GET_FLAG(RCC_FLAG_LSIRDY) == RESET) { }
  251              		.loc 1 88 9 view .LVU57
-ARM GAS  /tmp/ccMLv4yJ.s 			page 7
+ARM GAS  /tmp/ccvhXUIG.s 			page 7
 
 
  252              	.L16:
@@ -418,7 +418,7 @@ ARM GAS  /tmp/ccMLv4yJ.s 			page 1
  104:Core/Src/rtc.c ****         pclk.RTCClockSelection    = src_wanted;
  105:Core/Src/rtc.c ****         if (HAL_RCCEx_PeriphCLKConfig(&pclk) != HAL_OK) {
  106:Core/Src/rtc.c ****             Error_Handler();
-ARM GAS  /tmp/ccMLv4yJ.s 			page 8
+ARM GAS  /tmp/ccvhXUIG.s 			page 8
 
 
  107:Core/Src/rtc.c ****         }
@@ -478,7 +478,7 @@ ARM GAS  /tmp/ccMLv4yJ.s 			page 1
  125:Core/Src/rtc.c ****     /* --- 3. Carga de fecha y hora solo en el primer arranque -------------- */
  126:Core/Src/rtc.c ****     if (HAL_RTCEx_BKUPRead(&hrtc, RTC_BKP_DR0) != RTC_BACKUP_SIGNATURE) {
  325              		.loc 1 126 5 is_stmt 1 view .LVU90
-ARM GAS  /tmp/ccMLv4yJ.s 			page 9
+ARM GAS  /tmp/ccvhXUIG.s 			page 9
 
 
  326              		.loc 1 126 9 is_stmt 0 view .LVU91
@@ -538,7 +538,7 @@ ARM GAS  /tmp/ccMLv4yJ.s 			page 1
  347 0096 FFF7FEFF 		bl	HAL_NVIC_SetPriority
  348              	.LVL21:
  160:Core/Src/rtc.c ****     HAL_NVIC_EnableIRQ(RTC_WKUP_IRQn);
-ARM GAS  /tmp/ccMLv4yJ.s 			page 10
+ARM GAS  /tmp/ccvhXUIG.s 			page 10
 
 
  349              		.loc 1 160 5 view .LVU96
@@ -598,7 +598,7 @@ ARM GAS  /tmp/ccMLv4yJ.s 			page 1
  388 00be 0492     		str	r2, [sp, #16]
  105:Core/Src/rtc.c ****             Error_Handler();
  389              		.loc 1 105 9 is_stmt 1 view .LVU107
-ARM GAS  /tmp/ccMLv4yJ.s 			page 11
+ARM GAS  /tmp/ccvhXUIG.s 			page 11
 
 
  105:Core/Src/rtc.c ****             Error_Handler();
@@ -658,7 +658,7 @@ ARM GAS  /tmp/ccMLv4yJ.s 			page 1
  429              		.loc 1 131 29 is_stmt 0 view .LVU122
  430 00f4 0022     		movs	r2, #0
  431 00f6 8DF81F20 		strb	r2, [sp, #31]
-ARM GAS  /tmp/ccMLv4yJ.s 			page 12
+ARM GAS  /tmp/ccvhXUIG.s 			page 12
 
 
  132:Core/Src/rtc.c ****         time.StoreOperation = RTC_STOREOPERATION_RESET;
@@ -718,7 +718,7 @@ ARM GAS  /tmp/ccMLv4yJ.s 			page 1
  468 0122 8DF81B00 		strb	r0, [sp, #27]
  146:Core/Src/rtc.c ****             Error_Handler();
  469              		.loc 1 146 9 is_stmt 1 view .LVU141
-ARM GAS  /tmp/ccMLv4yJ.s 			page 13
+ARM GAS  /tmp/ccvhXUIG.s 			page 13
 
 
  146:Core/Src/rtc.c ****             Error_Handler();
@@ -778,7 +778,7 @@ ARM GAS  /tmp/ccMLv4yJ.s 			page 1
  519              		.syntax unified
  520              		.thumb
  521              		.thumb_func
-ARM GAS  /tmp/ccMLv4yJ.s 			page 14
+ARM GAS  /tmp/ccvhXUIG.s 			page 14
 
 
  523              	rtc_get_time:
@@ -838,7 +838,7 @@ ARM GAS  /tmp/ccMLv4yJ.s 			page 1
  565              	.LFE273:
  567              		.section	.rodata.rtc_format_line.str1.4,"aMS",%progbits,1
  568              		.align	2
-ARM GAS  /tmp/ccMLv4yJ.s 			page 15
+ARM GAS  /tmp/ccvhXUIG.s 			page 15
 
 
  569              	.LC3:
@@ -898,7 +898,7 @@ ARM GAS  /tmp/ccMLv4yJ.s 			page 1
  194:Core/Src/rtc.c ****     snprintf(dst, len, "%02u:%02u:%02u %02u-%02u",
  608              		.loc 1 194 5 is_stmt 1 view .LVU164
  195:Core/Src/rtc.c ****              (unsigned)t.Hours, (unsigned)t.Minutes, (unsigned)t.Seconds,
-ARM GAS  /tmp/ccMLv4yJ.s 			page 16
+ARM GAS  /tmp/ccvhXUIG.s 			page 16
 
 
  609              		.loc 1 195 44 is_stmt 0 view .LVU165
@@ -958,7 +958,7 @@ ARM GAS  /tmp/ccMLv4yJ.s 			page 1
  653              		.loc 1 206 1 is_stmt 1 view -0
  654              		.cfi_startproc
  655              		@ args = 0, pretend = 0, frame = 0
-ARM GAS  /tmp/ccMLv4yJ.s 			page 17
+ARM GAS  /tmp/ccvhXUIG.s 			page 17
 
 
  656              		@ frame_needed = 0, uses_anonymous_args = 0
@@ -1017,42 +1017,42 @@ ARM GAS  /tmp/ccMLv4yJ.s 			page 1
  705              		.file 13 "Core/Inc/uart.h"
  706              		.file 14 "Core/Inc/main.h"
  707              		.file 15 "Core/Inc/system_clock.h"
-ARM GAS  /tmp/ccMLv4yJ.s 			page 18
+ARM GAS  /tmp/ccvhXUIG.s 			page 18
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 rtc.c
-     /tmp/ccMLv4yJ.s:21     .text.build_month:00000000 $t
-     /tmp/ccMLv4yJ.s:26     .text.build_month:00000000 build_month
-     /tmp/ccMLv4yJ.s:94     .text.build_month:00000034 $d
-     /tmp/ccMLv4yJ.s:677    .rodata.months.0:00000000 months.0
-     /tmp/ccMLv4yJ.s:99     .text.build_day:00000000 $t
-     /tmp/ccMLv4yJ.s:104    .text.build_day:00000000 build_day
-     /tmp/ccMLv4yJ.s:122    .text.build_year:00000000 $t
-     /tmp/ccMLv4yJ.s:127    .text.build_year:00000000 build_year
-     /tmp/ccMLv4yJ.s:144    .rodata.build_field.str1.4:00000000 $d
-     /tmp/ccMLv4yJ.s:148    .text.build_field:00000000 $t
-     /tmp/ccMLv4yJ.s:153    .text.build_field:00000000 build_field
-     /tmp/ccMLv4yJ.s:185    .text.build_field:0000001c $d
-     /tmp/ccMLv4yJ.s:190    .rodata.rtc_init.str1.4:00000000 $d
-     /tmp/ccMLv4yJ.s:198    .text.rtc_init:00000000 $t
-     /tmp/ccMLv4yJ.s:204    .text.rtc_init:00000000 rtc_init
-     /tmp/ccMLv4yJ.s:506    .text.rtc_init:00000150 $d
-     /tmp/ccMLv4yJ.s:690    .bss.hrtc:00000000 hrtc
-     /tmp/ccMLv4yJ.s:517    .text.rtc_get_time:00000000 $t
-     /tmp/ccMLv4yJ.s:523    .text.rtc_get_time:00000000 rtc_get_time
-     /tmp/ccMLv4yJ.s:563    .text.rtc_get_time:0000001c $d
-     /tmp/ccMLv4yJ.s:568    .rodata.rtc_format_line.str1.4:00000000 $d
-     /tmp/ccMLv4yJ.s:572    .text.rtc_format_line:00000000 $t
-     /tmp/ccMLv4yJ.s:578    .text.rtc_format_line:00000000 rtc_format_line
-     /tmp/ccMLv4yJ.s:639    .text.rtc_format_line:0000003c $d
-     /tmp/ccMLv4yJ.s:644    .text.HAL_RTCEx_WakeUpTimerEventCallback:00000000 $t
-     /tmp/ccMLv4yJ.s:650    .text.HAL_RTCEx_WakeUpTimerEventCallback:00000000 HAL_RTCEx_WakeUpTimerEventCallback
-     /tmp/ccMLv4yJ.s:669    .text.HAL_RTCEx_WakeUpTimerEventCallback:00000008 $d
-     /tmp/ccMLv4yJ.s:683    .bss.g_rtc_second_flag:00000000 g_rtc_second_flag
-     /tmp/ccMLv4yJ.s:674    .rodata.months.0:00000000 $d
-     /tmp/ccMLv4yJ.s:684    .bss.g_rtc_second_flag:00000000 $d
-     /tmp/ccMLv4yJ.s:687    .bss.hrtc:00000000 $d
+     /tmp/ccvhXUIG.s:21     .text.build_month:00000000 $t
+     /tmp/ccvhXUIG.s:26     .text.build_month:00000000 build_month
+     /tmp/ccvhXUIG.s:94     .text.build_month:00000034 $d
+     /tmp/ccvhXUIG.s:677    .rodata.months.0:00000000 months.0
+     /tmp/ccvhXUIG.s:99     .text.build_day:00000000 $t
+     /tmp/ccvhXUIG.s:104    .text.build_day:00000000 build_day
+     /tmp/ccvhXUIG.s:122    .text.build_year:00000000 $t
+     /tmp/ccvhXUIG.s:127    .text.build_year:00000000 build_year
+     /tmp/ccvhXUIG.s:144    .rodata.build_field.str1.4:00000000 $d
+     /tmp/ccvhXUIG.s:148    .text.build_field:00000000 $t
+     /tmp/ccvhXUIG.s:153    .text.build_field:00000000 build_field
+     /tmp/ccvhXUIG.s:185    .text.build_field:0000001c $d
+     /tmp/ccvhXUIG.s:190    .rodata.rtc_init.str1.4:00000000 $d
+     /tmp/ccvhXUIG.s:198    .text.rtc_init:00000000 $t
+     /tmp/ccvhXUIG.s:204    .text.rtc_init:00000000 rtc_init
+     /tmp/ccvhXUIG.s:506    .text.rtc_init:00000150 $d
+     /tmp/ccvhXUIG.s:690    .bss.hrtc:00000000 hrtc
+     /tmp/ccvhXUIG.s:517    .text.rtc_get_time:00000000 $t
+     /tmp/ccvhXUIG.s:523    .text.rtc_get_time:00000000 rtc_get_time
+     /tmp/ccvhXUIG.s:563    .text.rtc_get_time:0000001c $d
+     /tmp/ccvhXUIG.s:568    .rodata.rtc_format_line.str1.4:00000000 $d
+     /tmp/ccvhXUIG.s:572    .text.rtc_format_line:00000000 $t
+     /tmp/ccvhXUIG.s:578    .text.rtc_format_line:00000000 rtc_format_line
+     /tmp/ccvhXUIG.s:639    .text.rtc_format_line:0000003c $d
+     /tmp/ccvhXUIG.s:644    .text.HAL_RTCEx_WakeUpTimerEventCallback:00000000 $t
+     /tmp/ccvhXUIG.s:650    .text.HAL_RTCEx_WakeUpTimerEventCallback:00000000 HAL_RTCEx_WakeUpTimerEventCallback
+     /tmp/ccvhXUIG.s:669    .text.HAL_RTCEx_WakeUpTimerEventCallback:00000008 $d
+     /tmp/ccvhXUIG.s:683    .bss.g_rtc_second_flag:00000000 g_rtc_second_flag
+     /tmp/ccvhXUIG.s:674    .rodata.months.0:00000000 $d
+     /tmp/ccvhXUIG.s:684    .bss.g_rtc_second_flag:00000000 $d
+     /tmp/ccvhXUIG.s:687    .bss.hrtc:00000000 $d
 
 UNDEFINED SYMBOLS
 system_clock_lse_ok

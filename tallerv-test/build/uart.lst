@@ -1,4 +1,4 @@
-ARM GAS  /tmp/ccc66gAr.s 			page 1
+ARM GAS  /tmp/ccTicblF.s 			page 1
 
 
    1              		.cpu cortex-m4
@@ -58,7 +58,7 @@ ARM GAS  /tmp/ccc66gAr.s 			page 1
   29:Core/Src/uart.c **** static volatile uint16_t s_tx_tail = 0;   /* posicion de lectura   */
   30:Core/Src/uart.c **** static volatile uint8_t  s_tx_busy = 0;   /* 1 si hay un envio en curso */
   31:Core/Src/uart.c **** 
-ARM GAS  /tmp/ccc66gAr.s 			page 2
+ARM GAS  /tmp/ccTicblF.s 			page 2
 
 
   32:Core/Src/uart.c **** /* Byte que se esta transmitiendo en este momento */
@@ -118,7 +118,7 @@ ARM GAS  /tmp/ccc66gAr.s 			page 1
   66 0028 1380     		strh	r3, [r2]	@ movhi
   48:Core/Src/uart.c ****     s_tx_busy    = 1U;
   67              		.loc 1 48 5 is_stmt 1 view .LVU12
-ARM GAS  /tmp/ccc66gAr.s 			page 3
+ARM GAS  /tmp/ccTicblF.s 			page 3
 
 
   68              		.loc 1 48 18 is_stmt 0 view .LVU13
@@ -178,7 +178,7 @@ ARM GAS  /tmp/ccc66gAr.s 			page 1
  117 0008 154A     		ldr	r2, .L10
  118 000a 116C     		ldr	r1, [r2, #64]
  119 000c 41F40031 		orr	r1, r1, #131072
-ARM GAS  /tmp/ccc66gAr.s 			page 4
+ARM GAS  /tmp/ccTicblF.s 			page 4
 
 
  120 0010 1164     		str	r1, [r2, #64]
@@ -238,7 +238,7 @@ ARM GAS  /tmp/ccc66gAr.s 			page 1
  157              		.loc 1 72 5 is_stmt 1 view .LVU39
  158              		.loc 1 72 9 is_stmt 0 view .LVU40
  159 0036 FFF7FEFF 		bl	HAL_UART_Init
-ARM GAS  /tmp/ccc66gAr.s 			page 5
+ARM GAS  /tmp/ccTicblF.s 			page 5
 
 
  160              	.LVL1:
@@ -298,7 +298,7 @@ ARM GAS  /tmp/ccc66gAr.s 			page 1
  201              		.cfi_endproc
  202              	.LFE269:
  204              		.section	.text.uart_send,"ax",%progbits
-ARM GAS  /tmp/ccc66gAr.s 			page 6
+ARM GAS  /tmp/ccTicblF.s 			page 6
 
 
  205              		.align	1
@@ -358,7 +358,7 @@ ARM GAS  /tmp/ccc66gAr.s 			page 1
  243              	.LVL9:
  244              	.L13:
   95:Core/Src/uart.c ****         next = (uint16_t)((s_tx_head + 1U) % UART_TX_BUF_SIZE);
-ARM GAS  /tmp/ccc66gAr.s 			page 7
+ARM GAS  /tmp/ccTicblF.s 			page 7
 
 
  245              		.loc 1 95 15 is_stmt 1 discriminator 1 view .LVU58
@@ -418,7 +418,7 @@ ARM GAS  /tmp/ccc66gAr.s 			page 1
  289              		.thumb
  290              		.thumb_func
  292              	uart_send_line:
-ARM GAS  /tmp/ccc66gAr.s 			page 8
+ARM GAS  /tmp/ccTicblF.s 			page 8
 
 
  293              	.LVL13:
@@ -478,7 +478,7 @@ ARM GAS  /tmp/ccc66gAr.s 			page 1
  335              		.loc 1 118 1 is_stmt 0 view .LVU75
  336 0000 08B5     		push	{r3, lr}
  337              	.LCFI7:
-ARM GAS  /tmp/ccc66gAr.s 			page 9
+ARM GAS  /tmp/ccTicblF.s 			page 9
 
 
  338              		.cfi_def_cfa_offset 8
@@ -538,7 +538,7 @@ ARM GAS  /tmp/ccc66gAr.s 			page 1
  127:Core/Src/uart.c ****  * HAL_UART_RxCpltCallback
  128:Core/Src/uart.c ****  * La HAL la invoca al recibir un caracter. Traduce el caracter a un evento
  129:Core/Src/uart.c ****  * de la maquina de estados y vuelve a armar la recepcion.
-ARM GAS  /tmp/ccc66gAr.s 			page 10
+ARM GAS  /tmp/ccTicblF.s 			page 10
 
 
  130:Core/Src/uart.c ****  *
@@ -598,7 +598,7 @@ ARM GAS  /tmp/ccc66gAr.s 			page 1
  403 000a 08BD     		pop	{r3, pc}
  404              	.LVL22:
  405              	.L47:
-ARM GAS  /tmp/ccc66gAr.s 			page 11
+ARM GAS  /tmp/ccTicblF.s 			page 11
 
 
  141:Core/Src/uart.c **** 
@@ -658,7 +658,7 @@ ARM GAS  /tmp/ccc66gAr.s 			page 1
  456 003f 49       		.byte	(.L37-.L34)/2
  457 0040 2B       		.byte	(.L32-.L34)/2
  458 0041 2B       		.byte	(.L32-.L34)/2
-ARM GAS  /tmp/ccc66gAr.s 			page 12
+ARM GAS  /tmp/ccTicblF.s 			page 12
 
 
  459 0042 51       		.byte	(.L36-.L34)/2
@@ -718,7 +718,7 @@ ARM GAS  /tmp/ccc66gAr.s 			page 1
  509 0070 0122     		movs	r2, #1
  510 0072 1749     		ldr	r1, .L48+4
  511 0074 1748     		ldr	r0, .L48+8
-ARM GAS  /tmp/ccc66gAr.s 			page 13
+ARM GAS  /tmp/ccTicblF.s 			page 13
 
 
  512 0076 FFF7FEFF 		bl	HAL_UART_Receive_IT
@@ -778,7 +778,7 @@ ARM GAS  /tmp/ccc66gAr.s 			page 1
  554 009a E9E7     		b	.L32
  555              	.LVL40:
  556              	.L39:
-ARM GAS  /tmp/ccc66gAr.s 			page 14
+ARM GAS  /tmp/ccTicblF.s 			page 14
 
 
  149:Core/Src/uart.c ****     case 'l': case 'L': fsm_post_event(EV_CMD_MCO_LSE); break;
@@ -838,7 +838,7 @@ ARM GAS  /tmp/ccc66gAr.s 			page 1
  598 00bc 0B20     		movs	r0, #11
  599              	.LVL53:
  153:Core/Src/uart.c ****     case '?':           fsm_post_event(EV_CMD_HELP);    break;
-ARM GAS  /tmp/ccc66gAr.s 			page 15
+ARM GAS  /tmp/ccTicblF.s 			page 15
 
 
  600              		.loc 1 153 25 is_stmt 0 view .LVU124
@@ -898,7 +898,7 @@ ARM GAS  /tmp/ccc66gAr.s 			page 1
  643 0004 9342     		cmp	r3, r2
  644 0006 00D0     		beq	.L56
  645 0008 7047     		bx	lr
-ARM GAS  /tmp/ccc66gAr.s 			page 16
+ARM GAS  /tmp/ccTicblF.s 			page 16
 
 
  646              	.L56:
@@ -958,7 +958,7 @@ ARM GAS  /tmp/ccc66gAr.s 			page 1
  698              		.section	.bss.s_tx_busy,"aw",%nobits
  701              	s_tx_busy:
  702 0000 00       		.space	1
-ARM GAS  /tmp/ccc66gAr.s 			page 17
+ARM GAS  /tmp/ccTicblF.s 			page 17
 
 
  703              		.section	.bss.s_tx_tail,"aw",%nobits
@@ -1001,50 +1001,50 @@ ARM GAS  /tmp/ccc66gAr.s 			page 1
  742              		.file 9 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_cortex.h"
  743              		.file 10 "Core/Inc/uart.h"
  744              		.file 11 "Core/Inc/main.h"
-ARM GAS  /tmp/ccc66gAr.s 			page 18
+ARM GAS  /tmp/ccTicblF.s 			page 18
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 uart.c
-     /tmp/ccc66gAr.s:21     .text.uart_start_tx:00000000 $t
-     /tmp/ccc66gAr.s:26     .text.uart_start_tx:00000000 uart_start_tx
-     /tmp/ccc66gAr.s:82     .text.uart_start_tx:00000038 $d
-     /tmp/ccc66gAr.s:701    .bss.s_tx_busy:00000000 s_tx_busy
-     /tmp/ccc66gAr.s:713    .bss.s_tx_head:00000000 s_tx_head
-     /tmp/ccc66gAr.s:707    .bss.s_tx_tail:00000000 s_tx_tail
-     /tmp/ccc66gAr.s:719    .bss.s_tx_buf:00000000 s_tx_buf
-     /tmp/ccc66gAr.s:696    .bss.s_tx_current:00000000 s_tx_current
-     /tmp/ccc66gAr.s:731    .bss.huart2:00000000 huart2
-     /tmp/ccc66gAr.s:92     .text.uart_init:00000000 $t
-     /tmp/ccc66gAr.s:98     .text.uart_init:00000000 uart_init
-     /tmp/ccc66gAr.s:197    .text.uart_init:00000060 $d
-     /tmp/ccc66gAr.s:724    .bss.s_rx_byte:00000000 s_rx_byte
-     /tmp/ccc66gAr.s:205    .text.uart_send:00000000 $t
-     /tmp/ccc66gAr.s:211    .text.uart_send:00000000 uart_send
-     /tmp/ccc66gAr.s:275    .text.uart_send:00000034 $d
-     /tmp/ccc66gAr.s:282    .rodata.uart_send_line.str1.4:00000000 $d
-     /tmp/ccc66gAr.s:286    .text.uart_send_line:00000000 $t
-     /tmp/ccc66gAr.s:292    .text.uart_send_line:00000000 uart_send_line
-     /tmp/ccc66gAr.s:317    .text.uart_send_line:00000010 $d
-     /tmp/ccc66gAr.s:322    .text.HAL_UART_TxCpltCallback:00000000 $t
-     /tmp/ccc66gAr.s:328    .text.HAL_UART_TxCpltCallback:00000000 HAL_UART_TxCpltCallback
-     /tmp/ccc66gAr.s:367    .text.HAL_UART_TxCpltCallback:00000018 $d
-     /tmp/ccc66gAr.s:373    .text.HAL_UART_RxCpltCallback:00000000 $t
-     /tmp/ccc66gAr.s:379    .text.HAL_UART_RxCpltCallback:00000000 HAL_UART_RxCpltCallback
-     /tmp/ccc66gAr.s:419    .text.HAL_UART_RxCpltCallback:0000001a $d
-     /tmp/ccc66gAr.s:618    .text.HAL_UART_RxCpltCallback:000000cc $d
-     /tmp/ccc66gAr.s:625    .text.HAL_UART_ErrorCallback:00000000 $t
-     /tmp/ccc66gAr.s:631    .text.HAL_UART_ErrorCallback:00000000 HAL_UART_ErrorCallback
-     /tmp/ccc66gAr.s:687    .text.HAL_UART_ErrorCallback:0000002c $d
-     /tmp/ccc66gAr.s:697    .bss.s_tx_current:00000000 $d
-     /tmp/ccc66gAr.s:702    .bss.s_tx_busy:00000000 $d
-     /tmp/ccc66gAr.s:704    .bss.s_tx_tail:00000000 $d
-     /tmp/ccc66gAr.s:710    .bss.s_tx_head:00000000 $d
-     /tmp/ccc66gAr.s:716    .bss.s_tx_buf:00000000 $d
-     /tmp/ccc66gAr.s:725    .bss.s_rx_byte:00000000 $d
-     /tmp/ccc66gAr.s:728    .bss.huart2:00000000 $d
-     /tmp/ccc66gAr.s:498    .text.HAL_UART_RxCpltCallback:00000069 $d
-     /tmp/ccc66gAr.s:498    .text.HAL_UART_RxCpltCallback:0000006a $t
+     /tmp/ccTicblF.s:21     .text.uart_start_tx:00000000 $t
+     /tmp/ccTicblF.s:26     .text.uart_start_tx:00000000 uart_start_tx
+     /tmp/ccTicblF.s:82     .text.uart_start_tx:00000038 $d
+     /tmp/ccTicblF.s:701    .bss.s_tx_busy:00000000 s_tx_busy
+     /tmp/ccTicblF.s:713    .bss.s_tx_head:00000000 s_tx_head
+     /tmp/ccTicblF.s:707    .bss.s_tx_tail:00000000 s_tx_tail
+     /tmp/ccTicblF.s:719    .bss.s_tx_buf:00000000 s_tx_buf
+     /tmp/ccTicblF.s:696    .bss.s_tx_current:00000000 s_tx_current
+     /tmp/ccTicblF.s:731    .bss.huart2:00000000 huart2
+     /tmp/ccTicblF.s:92     .text.uart_init:00000000 $t
+     /tmp/ccTicblF.s:98     .text.uart_init:00000000 uart_init
+     /tmp/ccTicblF.s:197    .text.uart_init:00000060 $d
+     /tmp/ccTicblF.s:724    .bss.s_rx_byte:00000000 s_rx_byte
+     /tmp/ccTicblF.s:205    .text.uart_send:00000000 $t
+     /tmp/ccTicblF.s:211    .text.uart_send:00000000 uart_send
+     /tmp/ccTicblF.s:275    .text.uart_send:00000034 $d
+     /tmp/ccTicblF.s:282    .rodata.uart_send_line.str1.4:00000000 $d
+     /tmp/ccTicblF.s:286    .text.uart_send_line:00000000 $t
+     /tmp/ccTicblF.s:292    .text.uart_send_line:00000000 uart_send_line
+     /tmp/ccTicblF.s:317    .text.uart_send_line:00000010 $d
+     /tmp/ccTicblF.s:322    .text.HAL_UART_TxCpltCallback:00000000 $t
+     /tmp/ccTicblF.s:328    .text.HAL_UART_TxCpltCallback:00000000 HAL_UART_TxCpltCallback
+     /tmp/ccTicblF.s:367    .text.HAL_UART_TxCpltCallback:00000018 $d
+     /tmp/ccTicblF.s:373    .text.HAL_UART_RxCpltCallback:00000000 $t
+     /tmp/ccTicblF.s:379    .text.HAL_UART_RxCpltCallback:00000000 HAL_UART_RxCpltCallback
+     /tmp/ccTicblF.s:419    .text.HAL_UART_RxCpltCallback:0000001a $d
+     /tmp/ccTicblF.s:618    .text.HAL_UART_RxCpltCallback:000000cc $d
+     /tmp/ccTicblF.s:625    .text.HAL_UART_ErrorCallback:00000000 $t
+     /tmp/ccTicblF.s:631    .text.HAL_UART_ErrorCallback:00000000 HAL_UART_ErrorCallback
+     /tmp/ccTicblF.s:687    .text.HAL_UART_ErrorCallback:0000002c $d
+     /tmp/ccTicblF.s:697    .bss.s_tx_current:00000000 $d
+     /tmp/ccTicblF.s:702    .bss.s_tx_busy:00000000 $d
+     /tmp/ccTicblF.s:704    .bss.s_tx_tail:00000000 $d
+     /tmp/ccTicblF.s:710    .bss.s_tx_head:00000000 $d
+     /tmp/ccTicblF.s:716    .bss.s_tx_buf:00000000 $d
+     /tmp/ccTicblF.s:725    .bss.s_rx_byte:00000000 $d
+     /tmp/ccTicblF.s:728    .bss.huart2:00000000 $d
+     /tmp/ccTicblF.s:498    .text.HAL_UART_RxCpltCallback:00000069 $d
+     /tmp/ccTicblF.s:498    .text.HAL_UART_RxCpltCallback:0000006a $t
 
 UNDEFINED SYMBOLS
 HAL_UART_Transmit_IT

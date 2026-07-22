@@ -57,10 +57,10 @@ static uint16_t s_tick_scroll  = 0;   /* desplaza el texto cada 300 ms */
 static uint16_t s_msg_timeout  = 0;   /* vida restante del mensaje temporal */
 
 /* Textos fijos */
-static const char TXT_BANNER[]  = "DANIEL VARGAS - PARCIAL TALLER V 2026-1 - UNAL";
+static const char TXT_BANNER[]  = "DANIEL FELIPE VARGAS ARIAS - PARCIAL TALLER V 2026-1 - UNAL";
 static const char TXT_MODE_X[]  = "MODO X";
 static const char TXT_MODE_Y[]  = "MODO Y";
-static const char TXT_NO_MODE[] = "ACTIVAR MODO X O Y";
+static const char TXT_NO_MODE[] = "ACTIVAR UN MODO";
 
 #define MSG_DURATION_TICKS  30U   /* 30 * 100 ms = 3 s */
 

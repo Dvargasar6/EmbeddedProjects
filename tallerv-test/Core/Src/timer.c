@@ -37,7 +37,7 @@ void timer_init(void)
     htim3.Init.Prescaler     = 10000U - 1U;  /* divide 100 MHz hasta 10 kHz */
     htim3.Init.CounterMode   = TIM_COUNTERMODE_UP;  /* cuenta 0 -> ARR.
                                         Alternativas: DOWN, CENTERALIGNED1/2/3 */
-    htim3.Init.Period        = 2500U - 1U;   /* 2500 pasos de 100 us = 250 ms */
+    htim3.Init.Period        = 5000U - 1U;   /* 2500 pasos de 100 us = 250 ms */
     htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;  /* divisor del filtro
                                         digital de las entradas, no del contador */
     htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;

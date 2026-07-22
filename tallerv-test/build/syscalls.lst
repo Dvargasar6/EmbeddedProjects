@@ -1,4 +1,4 @@
-ARM GAS  /tmp/ccSleuCs.s 			page 1
+ARM GAS  /tmp/cccvQwuo.s 			page 1
 
 
    1              		.cpu cortex-m4
@@ -58,7 +58,7 @@ ARM GAS  /tmp/ccSleuCs.s 			page 1
   37              		.loc 1 19 5 is_stmt 1 view .LVU2
   20:Core/Src/syscalls.c ****     unsigned char *prev;
   38              		.loc 1 20 5 view .LVU3
-ARM GAS  /tmp/ccSleuCs.s 			page 2
+ARM GAS  /tmp/cccvQwuo.s 			page 2
 
 
   21:Core/Src/syscalls.c **** 
@@ -118,7 +118,7 @@ ARM GAS  /tmp/ccSleuCs.s 			page 1
   85              	.LFB1:
   29:Core/Src/syscalls.c **** 
   30:Core/Src/syscalls.c **** int _close(int file)                        { (void)file; return -1; }
-ARM GAS  /tmp/ccSleuCs.s 			page 3
+ARM GAS  /tmp/cccvQwuo.s 			page 3
 
 
   86              		.loc 1 30 45 is_stmt 1 view -0
@@ -178,7 +178,7 @@ ARM GAS  /tmp/ccSleuCs.s 			page 1
  142              		@ args = 0, pretend = 0, frame = 0
  143              		@ frame_needed = 0, uses_anonymous_args = 0
  144              		@ link register save eliminated.
-ARM GAS  /tmp/ccSleuCs.s 			page 4
+ARM GAS  /tmp/cccvQwuo.s 			page 4
 
 
  145              		.loc 1 32 47 view .LVU29
@@ -238,7 +238,7 @@ ARM GAS  /tmp/ccSleuCs.s 			page 1
  201              		.loc 1 34 91 is_stmt 0 view .LVU45
  202 0000 0020     		movs	r0, #0
  203              	.LVL13:
-ARM GAS  /tmp/ccSleuCs.s 			page 5
+ARM GAS  /tmp/cccvQwuo.s 			page 5
 
 
  204              		.loc 1 34 91 view .LVU46
@@ -298,7 +298,7 @@ ARM GAS  /tmp/ccSleuCs.s 			page 1
  261              		.align	1
  262              		.global	_kill
  263              		.syntax unified
-ARM GAS  /tmp/ccSleuCs.s 			page 6
+ARM GAS  /tmp/cccvQwuo.s 			page 6
 
 
  264              		.thumb
@@ -358,7 +358,7 @@ ARM GAS  /tmp/ccSleuCs.s 			page 1
  322              		.text
  323              	.Letext0:
  324              		.file 2 "/usr/arm-none-eabi/include/machine/_default_types.h"
-ARM GAS  /tmp/ccSleuCs.s 			page 7
+ARM GAS  /tmp/cccvQwuo.s 			page 7
 
 
  325              		.file 3 "/usr/arm-none-eabi/include/sys/_types.h"
@@ -367,34 +367,34 @@ ARM GAS  /tmp/ccSleuCs.s 			page 1
  328              		.file 6 "/usr/arm-none-eabi/include/sys/types.h"
  329              		.file 7 "/usr/arm-none-eabi/include/sys/stat.h"
  330              		.file 8 "/usr/arm-none-eabi/include/sys/errno.h"
-ARM GAS  /tmp/ccSleuCs.s 			page 8
+ARM GAS  /tmp/cccvQwuo.s 			page 8
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 syscalls.c
-     /tmp/ccSleuCs.s:21     .text._sbrk:00000000 $t
-     /tmp/ccSleuCs.s:27     .text._sbrk:00000000 _sbrk
-     /tmp/ccSleuCs.s:71     .text._sbrk:0000001c $d
-     /tmp/ccSleuCs.s:320    .bss.heap.0:00000000 heap.0
-     /tmp/ccSleuCs.s:77     .text._close:00000000 $t
-     /tmp/ccSleuCs.s:83     .text._close:00000000 _close
-     /tmp/ccSleuCs.s:102    .text._fstat:00000000 $t
-     /tmp/ccSleuCs.s:108    .text._fstat:00000000 _fstat
-     /tmp/ccSleuCs.s:131    .text._isatty:00000000 $t
-     /tmp/ccSleuCs.s:137    .text._isatty:00000000 _isatty
-     /tmp/ccSleuCs.s:156    .text._lseek:00000000 $t
-     /tmp/ccSleuCs.s:162    .text._lseek:00000000 _lseek
-     /tmp/ccSleuCs.s:183    .text._read:00000000 $t
-     /tmp/ccSleuCs.s:189    .text._read:00000000 _read
-     /tmp/ccSleuCs.s:210    .text._write:00000000 $t
-     /tmp/ccSleuCs.s:216    .text._write:00000000 _write
-     /tmp/ccSleuCs.s:236    .text._exit:00000000 $t
-     /tmp/ccSleuCs.s:242    .text._exit:00000000 _exit
-     /tmp/ccSleuCs.s:261    .text._kill:00000000 $t
-     /tmp/ccSleuCs.s:267    .text._kill:00000000 _kill
-     /tmp/ccSleuCs.s:296    .text._getpid:00000000 $t
-     /tmp/ccSleuCs.s:302    .text._getpid:00000000 _getpid
-     /tmp/ccSleuCs.s:317    .bss.heap.0:00000000 $d
+     /tmp/cccvQwuo.s:21     .text._sbrk:00000000 $t
+     /tmp/cccvQwuo.s:27     .text._sbrk:00000000 _sbrk
+     /tmp/cccvQwuo.s:71     .text._sbrk:0000001c $d
+     /tmp/cccvQwuo.s:320    .bss.heap.0:00000000 heap.0
+     /tmp/cccvQwuo.s:77     .text._close:00000000 $t
+     /tmp/cccvQwuo.s:83     .text._close:00000000 _close
+     /tmp/cccvQwuo.s:102    .text._fstat:00000000 $t
+     /tmp/cccvQwuo.s:108    .text._fstat:00000000 _fstat
+     /tmp/cccvQwuo.s:131    .text._isatty:00000000 $t
+     /tmp/cccvQwuo.s:137    .text._isatty:00000000 _isatty
+     /tmp/cccvQwuo.s:156    .text._lseek:00000000 $t
+     /tmp/cccvQwuo.s:162    .text._lseek:00000000 _lseek
+     /tmp/cccvQwuo.s:183    .text._read:00000000 $t
+     /tmp/cccvQwuo.s:189    .text._read:00000000 _read
+     /tmp/cccvQwuo.s:210    .text._write:00000000 $t
+     /tmp/cccvQwuo.s:216    .text._write:00000000 _write
+     /tmp/cccvQwuo.s:236    .text._exit:00000000 $t
+     /tmp/cccvQwuo.s:242    .text._exit:00000000 _exit
+     /tmp/cccvQwuo.s:261    .text._kill:00000000 $t
+     /tmp/cccvQwuo.s:267    .text._kill:00000000 _kill
+     /tmp/cccvQwuo.s:296    .text._getpid:00000000 $t
+     /tmp/cccvQwuo.s:302    .text._getpid:00000000 _getpid
+     /tmp/cccvQwuo.s:317    .bss.heap.0:00000000 $d
 
 UNDEFINED SYMBOLS
 _end

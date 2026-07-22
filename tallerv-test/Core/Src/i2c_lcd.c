@@ -1,6 +1,6 @@
 /*
  * i2c_lcd.c
- * Controlador de LCD HD44780 de 16x4 conectado por I2C mediante un PCF8574.
+ * Controlador de LCD HD44780 de 20x4 conectado por I2C mediante un PCF8574.
  *
  * El HD44780 se opera en modo de 4 bits: cada byte se envia en dos mitades
  * (nibbles), primero la alta y despues la baja. Cada nibble se valida con un

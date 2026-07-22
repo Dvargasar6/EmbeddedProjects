@@ -1,4 +1,4 @@
-ARM GAS  /tmp/ccL2UV8l.s 			page 1
+ARM GAS  /tmp/ccgN4EYJ.s 			page 1
 
 
    1              		.cpu cortex-m4
@@ -58,7 +58,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
   29:Core/Src/fsm.c **** 
   30:Core/Src/fsm.c **** static volatile fsm_event_t s_evq[EVQ_SIZE];
   31:Core/Src/fsm.c **** static volatile uint8_t     s_evq_head = 0;   /* escribe la ISR   */
-ARM GAS  /tmp/ccL2UV8l.s 			page 2
+ARM GAS  /tmp/ccgN4EYJ.s 			page 2
 
 
   32:Core/Src/fsm.c **** static volatile uint8_t     s_evq_tail = 0;   /* lee el bucle main */
@@ -89,10 +89,10 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
   57:Core/Src/fsm.c **** static uint16_t s_msg_timeout  = 0;   /* vida restante del mensaje temporal */
   58:Core/Src/fsm.c **** 
   59:Core/Src/fsm.c **** /* Textos fijos */
-  60:Core/Src/fsm.c **** static const char TXT_BANNER[]  = "DANIEL VARGAS - PARCIAL TALLER V 2026-1 - UNAL";
+  60:Core/Src/fsm.c **** static const char TXT_BANNER[]  = "DANIEL FELIPE VARGAS ARIAS - PARCIAL TALLER V 2026-1 - UNAL";
   61:Core/Src/fsm.c **** static const char TXT_MODE_X[]  = "MODO X";
   62:Core/Src/fsm.c **** static const char TXT_MODE_Y[]  = "MODO Y";
-  63:Core/Src/fsm.c **** static const char TXT_NO_MODE[] = "ACTIVAR MODO X O Y";
+  63:Core/Src/fsm.c **** static const char TXT_NO_MODE[] = "ACTIVAR UN MODO";
   64:Core/Src/fsm.c **** 
   65:Core/Src/fsm.c **** #define MSG_DURATION_TICKS  30U   /* 30 * 100 ms = 3 s */
   66:Core/Src/fsm.c **** 
@@ -118,7 +118,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
   86:Core/Src/fsm.c **** /*
   87:Core/Src/fsm.c ****  * fsm_get_event
   88:Core/Src/fsm.c ****  * Extrae el evento mas antiguo. Devuelve EV_NONE si no hay ninguno.
-ARM GAS  /tmp/ccL2UV8l.s 			page 3
+ARM GAS  /tmp/ccgN4EYJ.s 			page 3
 
 
   89:Core/Src/fsm.c ****  */
@@ -178,7 +178,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
   69              	.L4:
   70 0024 00000000 		.word	s_evq_head
   71 0028 00000000 		.word	s_evq_tail
-ARM GAS  /tmp/ccL2UV8l.s 			page 4
+ARM GAS  /tmp/ccgN4EYJ.s 			page 4
 
 
   72 002c 00000000 		.word	s_evq
@@ -238,7 +238,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  113              		.loc 1 111 31 discriminator 1 view .LVU25
  114 0016 0148     		ldr	r0, .L10
  115              	.LVL7:
-ARM GAS  /tmp/ccL2UV8l.s 			page 5
+ARM GAS  /tmp/ccgN4EYJ.s 			page 5
 
 
  113:Core/Src/fsm.c **** }
@@ -298,7 +298,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  140              		.loc 1 144 14 is_stmt 0 view .LVU29
  141 0000 024B     		ldr	r3, .L13
  142 0002 1860     		str	r0, [r3]
-ARM GAS  /tmp/ccL2UV8l.s 			page 6
+ARM GAS  /tmp/ccgN4EYJ.s 			page 6
 
 
  145:Core/Src/fsm.c ****     s_scroll = 0;
@@ -358,7 +358,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  190              		.loc 1 125 12 view .LVU39
  191 0008 0346     		mov	r3, r0
  125:Core/Src/fsm.c ****         if (!end && (txt[i] == '\0')) end = 1U;
-ARM GAS  /tmp/ccL2UV8l.s 			page 7
+ARM GAS  /tmp/ccgN4EYJ.s 			page 7
 
 
  192              		.loc 1 125 5 view .LVU40
@@ -418,7 +418,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  233 0032 0023     		movs	r3, #0
  234              	.LVL18:
  129:Core/Src/fsm.c **** 
-ARM GAS  /tmp/ccL2UV8l.s 			page 8
+ARM GAS  /tmp/ccgN4EYJ.s 			page 8
 
 
  235              		.loc 1 129 20 view .LVU54
@@ -478,7 +478,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  135:Core/Src/fsm.c **** }
  281              		.loc 1 135 5 view .LVU63
  282 0084 6946     		mov	r1, sp
-ARM GAS  /tmp/ccL2UV8l.s 			page 9
+ARM GAS  /tmp/ccgN4EYJ.s 			page 9
 
 
  283 0086 2046     		mov	r0, r4
@@ -538,7 +538,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  184:Core/Src/fsm.c ****  */
  185:Core/Src/fsm.c **** static void render_time(void)
  186:Core/Src/fsm.c **** {
-ARM GAS  /tmp/ccL2UV8l.s 			page 10
+ARM GAS  /tmp/ccgN4EYJ.s 			page 10
 
 
  302              		.loc 1 186 1 view -0
@@ -598,7 +598,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  352              	.LCFI8:
  353              		.cfi_def_cfa_offset 32
  156:Core/Src/fsm.c ****     uint16_t len, total, i, idx;
-ARM GAS  /tmp/ccL2UV8l.s 			page 11
+ARM GAS  /tmp/ccgN4EYJ.s 			page 11
 
 
  354              		.loc 1 156 5 view .LVU70
@@ -658,7 +658,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  392              	.LVL31:
  167:Core/Src/fsm.c ****     }
  393              		.loc 1 167 9 is_stmt 1 view .LVU87
-ARM GAS  /tmp/ccL2UV8l.s 			page 12
+ARM GAS  /tmp/ccgN4EYJ.s 			page 12
 
 
  394 002a 20E0     		b	.L29
@@ -718,7 +718,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  435              	.LVL38:
  174:Core/Src/fsm.c ****     }
  436              		.loc 1 174 16 discriminator 1 view .LVU101
-ARM GAS  /tmp/ccL2UV8l.s 			page 13
+ARM GAS  /tmp/ccgN4EYJ.s 			page 13
 
 
  437 005e E7E7     		b	.L33
@@ -778,7 +778,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  205:Core/Src/fsm.c ****              (int)s_coord_x, (unsigned)adc_joystick_raw_x());
  206:Core/Src/fsm.c ****     lcd_update(2U, buf);
  207:Core/Src/fsm.c **** 
-ARM GAS  /tmp/ccL2UV8l.s 			page 14
+ARM GAS  /tmp/ccgN4EYJ.s 			page 14
 
 
  208:Core/Src/fsm.c ****     snprintf(buf, sizeof(buf), "Y:%+04d ADC:%04u",
@@ -838,7 +838,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  510              		.loc 1 226 5 view .LVU119
  511 001e FFF7FEFF 		bl	render_line2
  512              	.LVL44:
-ARM GAS  /tmp/ccL2UV8l.s 			page 15
+ARM GAS  /tmp/ccgN4EYJ.s 			page 15
 
 
  227:Core/Src/fsm.c **** }
@@ -898,7 +898,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  556 0016 0748     		ldr	r0, .L54+8
  557 0018 FFF7FEFF 		bl	set_line2
  558              	.LVL46:
-ARM GAS  /tmp/ccL2UV8l.s 			page 16
+ARM GAS  /tmp/ccgN4EYJ.s 			page 16
 
 
  236:Core/Src/fsm.c ****     case ST_MODE_X: set_line2(TXT_MODE_X); break;
@@ -958,7 +958,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  600              		@ args = 0, pretend = 0, frame = 24
  601              		@ frame_needed = 0, uses_anonymous_args = 0
  602 0000 30B5     		push	{r4, r5, lr}
-ARM GAS  /tmp/ccL2UV8l.s 			page 17
+ARM GAS  /tmp/ccgN4EYJ.s 			page 17
 
 
  603              	.LCFI12:
@@ -1018,7 +1018,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  648              		.loc 1 210 5 is_stmt 1 view .LVU140
  649 0042 2146     		mov	r1, r4
  650 0044 0320     		movs	r0, #3
-ARM GAS  /tmp/ccL2UV8l.s 			page 18
+ARM GAS  /tmp/ccgN4EYJ.s 			page 18
 
 
  651 0046 FFF7FEFF 		bl	lcd_update
@@ -1078,7 +1078,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  688      20696E63 
  688      72656D65 
  688      6E746120 
-ARM GAS  /tmp/ccL2UV8l.s 			page 19
+ARM GAS  /tmp/ccgN4EYJ.s 			page 19
 
 
  688      6C612063 
@@ -1138,7 +1138,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  712      3D3D3D3D 
  712      3D3D3D3D 
  713 01d7 3D3D3D00 		.ascii	"===\000"
-ARM GAS  /tmp/ccL2UV8l.s 			page 20
+ARM GAS  /tmp/ccgN4EYJ.s 			page 20
 
 
  714              		.section	.text.print_help,"ax",%progbits
@@ -1198,7 +1198,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  289:Core/Src/fsm.c ****  * continuo de 10 unidades por segundo.
  290:Core/Src/fsm.c ****  */
  291:Core/Src/fsm.c **** static void apply_joystick(void)
-ARM GAS  /tmp/ccL2UV8l.s 			page 21
+ARM GAS  /tmp/ccgN4EYJ.s 			page 21
 
 
  292:Core/Src/fsm.c **** {
@@ -1258,7 +1258,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  313:Core/Src/fsm.c ****     uart_send_line(" - : decrementa la coordenada del modo activo");
  755              		.loc 1 313 5 view .LVU149
  756 0026 1248     		ldr	r0, .L62+24
-ARM GAS  /tmp/ccL2UV8l.s 			page 22
+ARM GAS  /tmp/ccgN4EYJ.s 			page 22
 
 
  757 0028 FFF7FEFF 		bl	uart_send_line
@@ -1318,7 +1318,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  803 0084 70010000 		.word	.LC13
  804 0088 94010000 		.word	.LC14
  805 008c A4010000 		.word	.LC15
-ARM GAS  /tmp/ccL2UV8l.s 			page 23
+ARM GAS  /tmp/ccgN4EYJ.s 			page 23
 
 
  806              		.cfi_endproc
@@ -1378,7 +1378,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  255:Core/Src/fsm.c ****         render_coords();
  851              		.loc 1 255 19 discriminator 1 view .LVU165
  852 001e 2080     		strh	r0, [r4]	@ movhi
-ARM GAS  /tmp/ccL2UV8l.s 			page 24
+ARM GAS  /tmp/ccgN4EYJ.s 			page 24
 
 
  256:Core/Src/fsm.c ****         break;
@@ -1438,7 +1438,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  274:Core/Src/fsm.c ****         }
  892              		.loc 1 274 13 is_stmt 1 view .LVU181
  274:Core/Src/fsm.c ****         }
-ARM GAS  /tmp/ccL2UV8l.s 			page 25
+ARM GAS  /tmp/ccgN4EYJ.s 			page 25
 
 
  893              		.loc 1 274 27 is_stmt 0 view .LVU182
@@ -1498,7 +1498,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  279:Core/Src/fsm.c ****         uart_send_line("ERROR: seleccione modo con 'x' o 'y'");
  935              		.loc 1 279 9 view .LVU195
  936 0076 0848     		ldr	r0, .L74+20
-ARM GAS  /tmp/ccL2UV8l.s 			page 26
+ARM GAS  /tmp/ccgN4EYJ.s 			page 26
 
 
  937              	.LVL86:
@@ -1558,7 +1558,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  973      2020203A 
  973      20256C75 
  974              		.align	2
-ARM GAS  /tmp/ccL2UV8l.s 			page 27
+ARM GAS  /tmp/ccgN4EYJ.s 			page 27
 
 
  975              	.LC21:
@@ -1618,7 +1618,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  1001 0000 30B5     		push	{r4, r5, lr}
  1002              	.LCFI17:
  1003              		.cfi_def_cfa_offset 12
-ARM GAS  /tmp/ccL2UV8l.s 			page 28
+ARM GAS  /tmp/ccgN4EYJ.s 			page 28
 
 
  1004              		.cfi_offset 4, -12
@@ -1678,7 +1678,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  1046 0038 2046     		mov	r0, r4
  1047 003a FFF7FEFF 		bl	uart_send_line
  1048              	.LVL96:
-ARM GAS  /tmp/ccL2UV8l.s 			page 29
+ARM GAS  /tmp/ccgN4EYJ.s 			page 29
 
 
  342:Core/Src/fsm.c **** 
@@ -1738,7 +1738,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  355:Core/Src/fsm.c ****     snprintf(buf, sizeof(buf), " Joystick ADC  : X=%u  Y=%u",
  1089              		.loc 1 355 5 view .LVU224
  356:Core/Src/fsm.c ****              (unsigned)adc_joystick_raw_x(), (unsigned)adc_joystick_raw_y());
-ARM GAS  /tmp/ccL2UV8l.s 			page 30
+ARM GAS  /tmp/ccgN4EYJ.s 			page 30
 
 
  1090              		.loc 1 356 24 is_stmt 0 view .LVU225
@@ -1798,7 +1798,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  1138              	.L82:
  1139 00b8 00000000 		.word	.LC2
  1140 00bc 50000000 		.word	.LC19
-ARM GAS  /tmp/ccL2UV8l.s 			page 31
+ARM GAS  /tmp/ccgN4EYJ.s 			page 31
 
 
  1141 00c0 70000000 		.word	.LC20
@@ -1858,7 +1858,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  1188              		.loc 1 297 33 is_stmt 0 view .LVU241
  1189 0012 084C     		ldr	r4, .L88
  1190              	.LVL113:
-ARM GAS  /tmp/ccL2UV8l.s 			page 32
+ARM GAS  /tmp/ccgN4EYJ.s 			page 32
 
 
  297:Core/Src/fsm.c ****     }
@@ -1918,7 +1918,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
   76:Core/Src/fsm.c ****     uint8_t next = (uint8_t)((s_evq_head + 1U) % EVQ_SIZE);
  1236              		.loc 1 76 1 is_stmt 1 view -0
  1237              		.cfi_startproc
-ARM GAS  /tmp/ccL2UV8l.s 			page 33
+ARM GAS  /tmp/ccgN4EYJ.s 			page 33
 
 
  1238              		@ args = 0, pretend = 0, frame = 0
@@ -1978,7 +1978,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  1281              		.syntax unified
  1282              		.thumb
  1283              		.thumb_func
-ARM GAS  /tmp/ccL2UV8l.s 			page 34
+ARM GAS  /tmp/ccgN4EYJ.s 			page 34
 
 
  1285              	fsm_init:
@@ -2038,7 +2038,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  1324              		.loc 1 374 5 view .LVU278
  1325 0024 FFF7FEFF 		bl	render_line2
  1326              	.LVL122:
-ARM GAS  /tmp/ccL2UV8l.s 			page 35
+ARM GAS  /tmp/ccgN4EYJ.s 			page 35
 
 
  375:Core/Src/fsm.c ****     render_coords();
@@ -2098,7 +2098,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  1373              	.LFE283:
  1375              		.section	.rodata.fsm_run.str1.4,"aMS",%progbits,1
  1376              		.align	2
-ARM GAS  /tmp/ccL2UV8l.s 			page 36
+ARM GAS  /tmp/ccgN4EYJ.s 			page 36
 
 
  1377              	.LC26:
@@ -2158,7 +2158,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  387:Core/Src/fsm.c ****  * fsm_run
  388:Core/Src/fsm.c ****  * Procesa todos los eventos pendientes. Se invoca sin cesar desde main().
  389:Core/Src/fsm.c ****  */
-ARM GAS  /tmp/ccL2UV8l.s 			page 37
+ARM GAS  /tmp/ccgN4EYJ.s 			page 37
 
 
  390:Core/Src/fsm.c **** void fsm_run(void)
@@ -2218,7 +2218,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  1441 001c 5A4A     		ldr	r2, .L132+8
  1442 001e 1380     		strh	r3, [r2]	@ movhi
  409:Core/Src/fsm.c ****             render_coords();
-ARM GAS  /tmp/ccL2UV8l.s 			page 38
+ARM GAS  /tmp/ccgN4EYJ.s 			page 38
 
 
  1443              		.loc 1 409 13 is_stmt 1 view .LVU298
@@ -2278,7 +2278,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  1488 0080 1A70     		strb	r2, [r3]
  415:Core/Src/fsm.c ****             restore_line2();
  1489              		.loc 1 415 13 is_stmt 1 view .LVU307
-ARM GAS  /tmp/ccL2UV8l.s 			page 39
+ARM GAS  /tmp/ccgN4EYJ.s 			page 39
 
 
  1490 0082 FFF7FEFF 		bl	restore_line2
@@ -2338,7 +2338,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  1529              		.loc 1 430 13 is_stmt 0 view .LVU319
  1530 00ac FFF7FEFF 		bl	coord_step
  1531              	.LVL141:
-ARM GAS  /tmp/ccL2UV8l.s 			page 40
+ARM GAS  /tmp/ccgN4EYJ.s 			page 40
 
 
  431:Core/Src/fsm.c ****             break;
@@ -2398,7 +2398,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  1570              		.loc 1 446 13 is_stmt 1 view .LVU331
  1571 00d4 3348     		ldr	r0, .L132+36
  1572 00d6 FFF7FEFF 		bl	uart_send_line
-ARM GAS  /tmp/ccL2UV8l.s 			page 41
+ARM GAS  /tmp/ccgN4EYJ.s 			page 41
 
 
  1573              	.LVL153:
@@ -2458,7 +2458,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  1606              		.loc 1 467 20 is_stmt 1 view .LVU342
  1607              		.loc 1 467 23 is_stmt 0 view .LVU343
  1608 00f6 032B     		cmp	r3, #3
-ARM GAS  /tmp/ccL2UV8l.s 			page 42
+ARM GAS  /tmp/ccgN4EYJ.s 			page 42
 
 
  1609 00f8 0CD0     		beq	.L130
@@ -2518,7 +2518,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  480:Core/Src/fsm.c **** 
  481:Core/Src/fsm.c ****             /* Desplaza el texto movil cada tercer tick, esto es, 300 ms */
  482:Core/Src/fsm.c ****             if (++s_tick_scroll >= 3U) {
-ARM GAS  /tmp/ccL2UV8l.s 			page 43
+ARM GAS  /tmp/ccgN4EYJ.s 			page 43
 
 
  1647              		.loc 1 482 13 view .LVU355
@@ -2578,7 +2578,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  483:Core/Src/fsm.c ****                 s_scroll++;
  1691              		.loc 1 483 17 view .LVU369
  483:Core/Src/fsm.c ****                 s_scroll++;
-ARM GAS  /tmp/ccL2UV8l.s 			page 44
+ARM GAS  /tmp/ccgN4EYJ.s 			page 44
 
 
  1692              		.loc 1 483 31 is_stmt 0 view .LVU370
@@ -2638,7 +2638,7 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  1729 01a4 80000000 		.word	.LC31
  1730 01a8 A4000000 		.word	.LC32
  1731 01ac 00000000 		.word	s_tick_scroll
-ARM GAS  /tmp/ccL2UV8l.s 			page 45
+ARM GAS  /tmp/ccgN4EYJ.s 			page 45
 
 
  1732 01b0 00000000 		.word	s_msg_timeout
@@ -2649,11 +2649,10 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  1738              		.section	.rodata.TXT_NO_MODE,"a"
  1739              		.align	2
  1742              	TXT_NO_MODE:
- 1743 0000 41435449 		.ascii	"ACTIVAR MODO X O Y\000"
+ 1743 0000 41435449 		.ascii	"ACTIVAR UN MODO\000"
  1743      56415220 
- 1743      4D4F444F 
- 1743      2058204F 
- 1743      205900
+ 1743      554E204D 
+ 1743      4F444F00 
  1744              		.section	.rodata.TXT_MODE_Y,"a"
  1745              		.align	2
  1748              	TXT_MODE_Y:
@@ -2667,176 +2666,179 @@ ARM GAS  /tmp/ccL2UV8l.s 			page 1
  1756              		.section	.rodata.TXT_BANNER,"a"
  1757              		.align	2
  1760              	TXT_BANNER:
- 1761 0000 44414E49 		.ascii	"DANIEL VARGAS - PARCIAL TALLER V 2026-1 - UNAL\000"
- 1761      454C2056 
- 1761      41524741 
- 1761      53202D20 
- 1761      50415243 
- 1762              		.section	.bss.s_msg_timeout,"aw",%nobits
- 1763              		.align	1
- 1766              	s_msg_timeout:
- 1767 0000 0000     		.space	2
- 1768              		.section	.bss.s_tick_scroll,"aw",%nobits
- 1769              		.align	1
- 1772              	s_tick_scroll:
- 1773 0000 0000     		.space	2
- 1774              		.section	.bss.s_shadow,"aw",%nobits
- 1775              		.align	2
- 1778              	s_shadow:
- 1779 0000 00000000 		.space	84
- 1779      00000000 
- 1779      00000000 
- 1779      00000000 
- 1779      00000000 
- 1780              		.section	.bss.s_scroll,"aw",%nobits
- 1781              		.align	1
- 1784              	s_scroll:
- 1785 0000 0000     		.space	2
- 1786              		.section	.bss.s_line2,"aw",%nobits
- 1787              		.align	2
- 1790              	s_line2:
- 1791 0000 00000000 		.space	4
- 1792              		.section	.bss.s_coord_y,"aw",%nobits
- 1793              		.align	1
-ARM GAS  /tmp/ccL2UV8l.s 			page 46
+ 1761 0000 44414E49 		.ascii	"DANIEL FELIPE VARGAS ARIAS - PARCIAL TALLER V 2026-"
+ 1761      454C2046 
+ 1761      454C4950 
+ 1761      45205641 
+ 1761      52474153 
+ 1762 0033 31202D20 		.ascii	"1 - UNAL\000"
+ 1762      554E414C 
+ 1762      00
+ 1763              		.section	.bss.s_msg_timeout,"aw",%nobits
+ 1764              		.align	1
+ 1767              	s_msg_timeout:
+ 1768 0000 0000     		.space	2
+ 1769              		.section	.bss.s_tick_scroll,"aw",%nobits
+ 1770              		.align	1
+ 1773              	s_tick_scroll:
+ 1774 0000 0000     		.space	2
+ 1775              		.section	.bss.s_shadow,"aw",%nobits
+ 1776              		.align	2
+ 1779              	s_shadow:
+ 1780 0000 00000000 		.space	84
+ 1780      00000000 
+ 1780      00000000 
+ 1780      00000000 
+ 1780      00000000 
+ 1781              		.section	.bss.s_scroll,"aw",%nobits
+ 1782              		.align	1
+ 1785              	s_scroll:
+ 1786 0000 0000     		.space	2
+ 1787              		.section	.bss.s_line2,"aw",%nobits
+ 1788              		.align	2
+ 1791              	s_line2:
+ 1792 0000 00000000 		.space	4
+ARM GAS  /tmp/ccgN4EYJ.s 			page 46
 
 
- 1796              	s_coord_y:
- 1797 0000 0000     		.space	2
- 1798              		.section	.bss.s_coord_x,"aw",%nobits
- 1799              		.align	1
- 1802              	s_coord_x:
- 1803 0000 0000     		.space	2
- 1804              		.section	.data.s_prev,"aw"
- 1807              	s_prev:
- 1808 0000 01       		.byte	1
- 1809              		.section	.bss.s_state,"aw",%nobits
- 1812              	s_state:
- 1813 0000 00       		.space	1
- 1814              		.section	.bss.s_evq_tail,"aw",%nobits
- 1817              	s_evq_tail:
- 1818 0000 00       		.space	1
- 1819              		.section	.bss.s_evq_head,"aw",%nobits
- 1822              	s_evq_head:
- 1823 0000 00       		.space	1
- 1824              		.section	.bss.s_evq,"aw",%nobits
- 1825              		.align	2
- 1828              	s_evq:
- 1829 0000 00000000 		.space	32
- 1829      00000000 
- 1829      00000000 
- 1829      00000000 
- 1829      00000000 
- 1830              		.text
- 1831              	.Letext0:
- 1832              		.file 2 "/usr/arm-none-eabi/include/machine/_default_types.h"
- 1833              		.file 3 "/usr/arm-none-eabi/include/sys/_stdint.h"
- 1834              		.file 4 "/usr/lib/gcc/arm-none-eabi/16.1.0/include/stddef.h"
- 1835              		.file 5 "Core/Inc/fsm.h"
- 1836              		.file 6 "Core/Inc/system_clock.h"
- 1837              		.file 7 "Core/Inc/adc_joystick.h"
- 1838              		.file 8 "Core/Inc/i2c_lcd.h"
- 1839              		.file 9 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h"
- 1840              		.file 10 "Core/Inc/uart.h"
- 1841              		.file 11 "/usr/arm-none-eabi/include/stdio.h"
- 1842              		.file 12 "/usr/arm-none-eabi/include/string.h"
- 1843              		.file 13 "Core/Inc/rtc.h"
-ARM GAS  /tmp/ccL2UV8l.s 			page 47
+ 1793              		.section	.bss.s_coord_y,"aw",%nobits
+ 1794              		.align	1
+ 1797              	s_coord_y:
+ 1798 0000 0000     		.space	2
+ 1799              		.section	.bss.s_coord_x,"aw",%nobits
+ 1800              		.align	1
+ 1803              	s_coord_x:
+ 1804 0000 0000     		.space	2
+ 1805              		.section	.data.s_prev,"aw"
+ 1808              	s_prev:
+ 1809 0000 01       		.byte	1
+ 1810              		.section	.bss.s_state,"aw",%nobits
+ 1813              	s_state:
+ 1814 0000 00       		.space	1
+ 1815              		.section	.bss.s_evq_tail,"aw",%nobits
+ 1818              	s_evq_tail:
+ 1819 0000 00       		.space	1
+ 1820              		.section	.bss.s_evq_head,"aw",%nobits
+ 1823              	s_evq_head:
+ 1824 0000 00       		.space	1
+ 1825              		.section	.bss.s_evq,"aw",%nobits
+ 1826              		.align	2
+ 1829              	s_evq:
+ 1830 0000 00000000 		.space	32
+ 1830      00000000 
+ 1830      00000000 
+ 1830      00000000 
+ 1830      00000000 
+ 1831              		.text
+ 1832              	.Letext0:
+ 1833              		.file 2 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 1834              		.file 3 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 1835              		.file 4 "/usr/lib/gcc/arm-none-eabi/16.1.0/include/stddef.h"
+ 1836              		.file 5 "Core/Inc/fsm.h"
+ 1837              		.file 6 "Core/Inc/system_clock.h"
+ 1838              		.file 7 "Core/Inc/adc_joystick.h"
+ 1839              		.file 8 "Core/Inc/i2c_lcd.h"
+ 1840              		.file 9 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc.h"
+ 1841              		.file 10 "Core/Inc/uart.h"
+ 1842              		.file 11 "/usr/arm-none-eabi/include/stdio.h"
+ 1843              		.file 12 "/usr/arm-none-eabi/include/string.h"
+ 1844              		.file 13 "Core/Inc/rtc.h"
+ARM GAS  /tmp/ccgN4EYJ.s 			page 47
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 fsm.c
-     /tmp/ccL2UV8l.s:21     .text.fsm_get_event:00000000 $t
-     /tmp/ccL2UV8l.s:26     .text.fsm_get_event:00000000 fsm_get_event
-     /tmp/ccL2UV8l.s:70     .text.fsm_get_event:00000024 $d
-     /tmp/ccL2UV8l.s:1822   .bss.s_evq_head:00000000 s_evq_head
-     /tmp/ccL2UV8l.s:1817   .bss.s_evq_tail:00000000 s_evq_tail
-     /tmp/ccL2UV8l.s:1828   .bss.s_evq:00000000 s_evq
-     /tmp/ccL2UV8l.s:77     .text.clamp_coord:00000000 $t
-     /tmp/ccL2UV8l.s:82     .text.clamp_coord:00000000 clamp_coord
-     /tmp/ccL2UV8l.s:121    .text.clamp_coord:0000001c $d
-     /tmp/ccL2UV8l.s:126    .text.set_line2:00000000 $t
-     /tmp/ccL2UV8l.s:131    .text.set_line2:00000000 set_line2
-     /tmp/ccL2UV8l.s:153    .text.set_line2:0000000c $d
-     /tmp/ccL2UV8l.s:1790   .bss.s_line2:00000000 s_line2
-     /tmp/ccL2UV8l.s:1784   .bss.s_scroll:00000000 s_scroll
-     /tmp/ccL2UV8l.s:159    .text.lcd_update:00000000 $t
-     /tmp/ccL2UV8l.s:164    .text.lcd_update:00000000 lcd_update
-     /tmp/ccL2UV8l.s:290    .text.lcd_update:00000090 $d
-     /tmp/ccL2UV8l.s:1778   .bss.s_shadow:00000000 s_shadow
-     /tmp/ccL2UV8l.s:295    .text.render_time:00000000 $t
-     /tmp/ccL2UV8l.s:300    .text.render_time:00000000 render_time
-     /tmp/ccL2UV8l.s:335    .text.render_line2:00000000 $t
-     /tmp/ccL2UV8l.s:340    .text.render_line2:00000000 render_line2
-     /tmp/ccL2UV8l.s:461    .text.render_line2:00000074 $d
-     /tmp/ccL2UV8l.s:467    .text.show_message:00000000 $t
-     /tmp/ccL2UV8l.s:472    .text.show_message:00000000 show_message
-     /tmp/ccL2UV8l.s:518    .text.show_message:00000024 $d
-     /tmp/ccL2UV8l.s:1812   .bss.s_state:00000000 s_state
-     /tmp/ccL2UV8l.s:1807   .data.s_prev:00000000 s_prev
-     /tmp/ccL2UV8l.s:1766   .bss.s_msg_timeout:00000000 s_msg_timeout
-     /tmp/ccL2UV8l.s:525    .text.restore_line2:00000000 $t
-     /tmp/ccL2UV8l.s:530    .text.restore_line2:00000000 restore_line2
-     /tmp/ccL2UV8l.s:576    .text.restore_line2:0000002c $d
-     /tmp/ccL2UV8l.s:1760   .rodata.TXT_BANNER:00000000 TXT_BANNER
-     /tmp/ccL2UV8l.s:1754   .rodata.TXT_MODE_X:00000000 TXT_MODE_X
-     /tmp/ccL2UV8l.s:1748   .rodata.TXT_MODE_Y:00000000 TXT_MODE_Y
-     /tmp/ccL2UV8l.s:584    .rodata.render_coords.str1.4:00000000 $d
-     /tmp/ccL2UV8l.s:591    .text.render_coords:00000000 $t
-     /tmp/ccL2UV8l.s:596    .text.render_coords:00000000 render_coords
-     /tmp/ccL2UV8l.s:662    .text.render_coords:00000050 $d
-     /tmp/ccL2UV8l.s:1802   .bss.s_coord_x:00000000 s_coord_x
-     /tmp/ccL2UV8l.s:1796   .bss.s_coord_y:00000000 s_coord_y
-     /tmp/ccL2UV8l.s:670    .rodata.print_help.str1.4:00000000 $d
-     /tmp/ccL2UV8l.s:715    .text.print_help:00000000 $t
-     /tmp/ccL2UV8l.s:720    .text.print_help:00000000 print_help
-     /tmp/ccL2UV8l.s:792    .text.print_help:00000058 $d
-     /tmp/ccL2UV8l.s:810    .rodata.coord_step.str1.4:00000000 $d
-     /tmp/ccL2UV8l.s:814    .text.coord_step:00000000 $t
-     /tmp/ccL2UV8l.s:819    .text.coord_step:00000000 coord_step
-     /tmp/ccL2UV8l.s:951    .text.coord_step:00000084 $d
-     /tmp/ccL2UV8l.s:1742   .rodata.TXT_NO_MODE:00000000 TXT_NO_MODE
-     /tmp/ccL2UV8l.s:962    .rodata.print_diagnostics.str1.4:00000000 $d
-     /tmp/ccL2UV8l.s:990    .text.print_diagnostics:00000000 $t
-     /tmp/ccL2UV8l.s:995    .text.print_diagnostics:00000000 print_diagnostics
-     /tmp/ccL2UV8l.s:1139   .text.print_diagnostics:000000b8 $d
-     /tmp/ccL2UV8l.s:1153   .text.apply_joystick:00000000 $t
-ARM GAS  /tmp/ccL2UV8l.s 			page 48
+     /tmp/ccgN4EYJ.s:21     .text.fsm_get_event:00000000 $t
+     /tmp/ccgN4EYJ.s:26     .text.fsm_get_event:00000000 fsm_get_event
+     /tmp/ccgN4EYJ.s:70     .text.fsm_get_event:00000024 $d
+     /tmp/ccgN4EYJ.s:1823   .bss.s_evq_head:00000000 s_evq_head
+     /tmp/ccgN4EYJ.s:1818   .bss.s_evq_tail:00000000 s_evq_tail
+     /tmp/ccgN4EYJ.s:1829   .bss.s_evq:00000000 s_evq
+     /tmp/ccgN4EYJ.s:77     .text.clamp_coord:00000000 $t
+     /tmp/ccgN4EYJ.s:82     .text.clamp_coord:00000000 clamp_coord
+     /tmp/ccgN4EYJ.s:121    .text.clamp_coord:0000001c $d
+     /tmp/ccgN4EYJ.s:126    .text.set_line2:00000000 $t
+     /tmp/ccgN4EYJ.s:131    .text.set_line2:00000000 set_line2
+     /tmp/ccgN4EYJ.s:153    .text.set_line2:0000000c $d
+     /tmp/ccgN4EYJ.s:1791   .bss.s_line2:00000000 s_line2
+     /tmp/ccgN4EYJ.s:1785   .bss.s_scroll:00000000 s_scroll
+     /tmp/ccgN4EYJ.s:159    .text.lcd_update:00000000 $t
+     /tmp/ccgN4EYJ.s:164    .text.lcd_update:00000000 lcd_update
+     /tmp/ccgN4EYJ.s:290    .text.lcd_update:00000090 $d
+     /tmp/ccgN4EYJ.s:1779   .bss.s_shadow:00000000 s_shadow
+     /tmp/ccgN4EYJ.s:295    .text.render_time:00000000 $t
+     /tmp/ccgN4EYJ.s:300    .text.render_time:00000000 render_time
+     /tmp/ccgN4EYJ.s:335    .text.render_line2:00000000 $t
+     /tmp/ccgN4EYJ.s:340    .text.render_line2:00000000 render_line2
+     /tmp/ccgN4EYJ.s:461    .text.render_line2:00000074 $d
+     /tmp/ccgN4EYJ.s:467    .text.show_message:00000000 $t
+     /tmp/ccgN4EYJ.s:472    .text.show_message:00000000 show_message
+     /tmp/ccgN4EYJ.s:518    .text.show_message:00000024 $d
+     /tmp/ccgN4EYJ.s:1813   .bss.s_state:00000000 s_state
+     /tmp/ccgN4EYJ.s:1808   .data.s_prev:00000000 s_prev
+     /tmp/ccgN4EYJ.s:1767   .bss.s_msg_timeout:00000000 s_msg_timeout
+     /tmp/ccgN4EYJ.s:525    .text.restore_line2:00000000 $t
+     /tmp/ccgN4EYJ.s:530    .text.restore_line2:00000000 restore_line2
+     /tmp/ccgN4EYJ.s:576    .text.restore_line2:0000002c $d
+     /tmp/ccgN4EYJ.s:1760   .rodata.TXT_BANNER:00000000 TXT_BANNER
+     /tmp/ccgN4EYJ.s:1754   .rodata.TXT_MODE_X:00000000 TXT_MODE_X
+     /tmp/ccgN4EYJ.s:1748   .rodata.TXT_MODE_Y:00000000 TXT_MODE_Y
+     /tmp/ccgN4EYJ.s:584    .rodata.render_coords.str1.4:00000000 $d
+     /tmp/ccgN4EYJ.s:591    .text.render_coords:00000000 $t
+     /tmp/ccgN4EYJ.s:596    .text.render_coords:00000000 render_coords
+     /tmp/ccgN4EYJ.s:662    .text.render_coords:00000050 $d
+     /tmp/ccgN4EYJ.s:1803   .bss.s_coord_x:00000000 s_coord_x
+     /tmp/ccgN4EYJ.s:1797   .bss.s_coord_y:00000000 s_coord_y
+     /tmp/ccgN4EYJ.s:670    .rodata.print_help.str1.4:00000000 $d
+     /tmp/ccgN4EYJ.s:715    .text.print_help:00000000 $t
+     /tmp/ccgN4EYJ.s:720    .text.print_help:00000000 print_help
+     /tmp/ccgN4EYJ.s:792    .text.print_help:00000058 $d
+     /tmp/ccgN4EYJ.s:810    .rodata.coord_step.str1.4:00000000 $d
+     /tmp/ccgN4EYJ.s:814    .text.coord_step:00000000 $t
+     /tmp/ccgN4EYJ.s:819    .text.coord_step:00000000 coord_step
+     /tmp/ccgN4EYJ.s:951    .text.coord_step:00000084 $d
+     /tmp/ccgN4EYJ.s:1742   .rodata.TXT_NO_MODE:00000000 TXT_NO_MODE
+     /tmp/ccgN4EYJ.s:962    .rodata.print_diagnostics.str1.4:00000000 $d
+     /tmp/ccgN4EYJ.s:990    .text.print_diagnostics:00000000 $t
+     /tmp/ccgN4EYJ.s:995    .text.print_diagnostics:00000000 print_diagnostics
+     /tmp/ccgN4EYJ.s:1139   .text.print_diagnostics:000000b8 $d
+     /tmp/ccgN4EYJ.s:1153   .text.apply_joystick:00000000 $t
+ARM GAS  /tmp/ccgN4EYJ.s 			page 48
 
 
-     /tmp/ccL2UV8l.s:1158   .text.apply_joystick:00000000 apply_joystick
-     /tmp/ccL2UV8l.s:1221   .text.apply_joystick:00000034 $d
-     /tmp/ccL2UV8l.s:1227   .text.fsm_post_event:00000000 $t
-     /tmp/ccL2UV8l.s:1233   .text.fsm_post_event:00000000 fsm_post_event
-     /tmp/ccL2UV8l.s:1272   .text.fsm_post_event:00000024 $d
-     /tmp/ccL2UV8l.s:1279   .text.fsm_init:00000000 $t
-     /tmp/ccL2UV8l.s:1285   .text.fsm_init:00000000 fsm_init
-     /tmp/ccL2UV8l.s:1341   .text.fsm_init:00000038 $d
-     /tmp/ccL2UV8l.s:1350   .text.fsm_get_state:00000000 $t
-     /tmp/ccL2UV8l.s:1356   .text.fsm_get_state:00000000 fsm_get_state
-     /tmp/ccL2UV8l.s:1371   .text.fsm_get_state:00000008 $d
-     /tmp/ccL2UV8l.s:1376   .rodata.fsm_run.str1.4:00000000 $d
-     /tmp/ccL2UV8l.s:1398   .text.fsm_run:00000000 $t
-     /tmp/ccL2UV8l.s:1404   .text.fsm_run:00000000 fsm_run
-     /tmp/ccL2UV8l.s:1468   .text.fsm_run:00000044 $d
-     /tmp/ccL2UV8l.s:1482   .text.fsm_run:0000007c $t
-     /tmp/ccL2UV8l.s:1720   .text.fsm_run:00000180 $d
-     /tmp/ccL2UV8l.s:1772   .bss.s_tick_scroll:00000000 s_tick_scroll
-     /tmp/ccL2UV8l.s:1739   .rodata.TXT_NO_MODE:00000000 $d
-     /tmp/ccL2UV8l.s:1745   .rodata.TXT_MODE_Y:00000000 $d
-     /tmp/ccL2UV8l.s:1751   .rodata.TXT_MODE_X:00000000 $d
-     /tmp/ccL2UV8l.s:1757   .rodata.TXT_BANNER:00000000 $d
-     /tmp/ccL2UV8l.s:1763   .bss.s_msg_timeout:00000000 $d
-     /tmp/ccL2UV8l.s:1769   .bss.s_tick_scroll:00000000 $d
-     /tmp/ccL2UV8l.s:1775   .bss.s_shadow:00000000 $d
-     /tmp/ccL2UV8l.s:1781   .bss.s_scroll:00000000 $d
-     /tmp/ccL2UV8l.s:1787   .bss.s_line2:00000000 $d
-     /tmp/ccL2UV8l.s:1793   .bss.s_coord_y:00000000 $d
-     /tmp/ccL2UV8l.s:1799   .bss.s_coord_x:00000000 $d
-     /tmp/ccL2UV8l.s:1813   .bss.s_state:00000000 $d
-     /tmp/ccL2UV8l.s:1818   .bss.s_evq_tail:00000000 $d
-     /tmp/ccL2UV8l.s:1823   .bss.s_evq_head:00000000 $d
-     /tmp/ccL2UV8l.s:1825   .bss.s_evq:00000000 $d
+     /tmp/ccgN4EYJ.s:1158   .text.apply_joystick:00000000 apply_joystick
+     /tmp/ccgN4EYJ.s:1221   .text.apply_joystick:00000034 $d
+     /tmp/ccgN4EYJ.s:1227   .text.fsm_post_event:00000000 $t
+     /tmp/ccgN4EYJ.s:1233   .text.fsm_post_event:00000000 fsm_post_event
+     /tmp/ccgN4EYJ.s:1272   .text.fsm_post_event:00000024 $d
+     /tmp/ccgN4EYJ.s:1279   .text.fsm_init:00000000 $t
+     /tmp/ccgN4EYJ.s:1285   .text.fsm_init:00000000 fsm_init
+     /tmp/ccgN4EYJ.s:1341   .text.fsm_init:00000038 $d
+     /tmp/ccgN4EYJ.s:1350   .text.fsm_get_state:00000000 $t
+     /tmp/ccgN4EYJ.s:1356   .text.fsm_get_state:00000000 fsm_get_state
+     /tmp/ccgN4EYJ.s:1371   .text.fsm_get_state:00000008 $d
+     /tmp/ccgN4EYJ.s:1376   .rodata.fsm_run.str1.4:00000000 $d
+     /tmp/ccgN4EYJ.s:1398   .text.fsm_run:00000000 $t
+     /tmp/ccgN4EYJ.s:1404   .text.fsm_run:00000000 fsm_run
+     /tmp/ccgN4EYJ.s:1468   .text.fsm_run:00000044 $d
+     /tmp/ccgN4EYJ.s:1482   .text.fsm_run:0000007c $t
+     /tmp/ccgN4EYJ.s:1720   .text.fsm_run:00000180 $d
+     /tmp/ccgN4EYJ.s:1773   .bss.s_tick_scroll:00000000 s_tick_scroll
+     /tmp/ccgN4EYJ.s:1739   .rodata.TXT_NO_MODE:00000000 $d
+     /tmp/ccgN4EYJ.s:1745   .rodata.TXT_MODE_Y:00000000 $d
+     /tmp/ccgN4EYJ.s:1751   .rodata.TXT_MODE_X:00000000 $d
+     /tmp/ccgN4EYJ.s:1757   .rodata.TXT_BANNER:00000000 $d
+     /tmp/ccgN4EYJ.s:1764   .bss.s_msg_timeout:00000000 $d
+     /tmp/ccgN4EYJ.s:1770   .bss.s_tick_scroll:00000000 $d
+     /tmp/ccgN4EYJ.s:1776   .bss.s_shadow:00000000 $d
+     /tmp/ccgN4EYJ.s:1782   .bss.s_scroll:00000000 $d
+     /tmp/ccgN4EYJ.s:1788   .bss.s_line2:00000000 $d
+     /tmp/ccgN4EYJ.s:1794   .bss.s_coord_y:00000000 $d
+     /tmp/ccgN4EYJ.s:1800   .bss.s_coord_x:00000000 $d
+     /tmp/ccgN4EYJ.s:1814   .bss.s_state:00000000 $d
+     /tmp/ccgN4EYJ.s:1819   .bss.s_evq_tail:00000000 $d
+     /tmp/ccgN4EYJ.s:1824   .bss.s_evq_head:00000000 $d
+     /tmp/ccgN4EYJ.s:1826   .bss.s_evq:00000000 $d
 
 UNDEFINED SYMBOLS
 strncmp
