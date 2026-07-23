@@ -27,14 +27,16 @@
 
 /* ================= Excepciones del nucleo Cortex-M4 ==================== */
 
+
+/*
 void NMI_Handler(void)        { while (1) { } }  /* no enmascarable        */
-void HardFault_Handler(void)  { while (1) { } }  /* fallo grave            */
-void MemManage_Handler(void)  { while (1) { } }  /* violacion de la MPU    */
-void BusFault_Handler(void)   { while (1) { } }  /* fallo de bus           */
-void UsageFault_Handler(void) { while (1) { } }  /* instruccion invalida   */
-void SVC_Handler(void)        { }                /* llamada al supervisor  */
-void DebugMon_Handler(void)   { }                /* monitor de depuracion  */
-void PendSV_Handler(void)     { }                /* cambio de contexto     */
+/*void HardFault_Handler(void)  { while (1) { } }  /* fallo grave            */
+/*void MemManage_Handler(void)  { while (1) { } }  /* violacion de la MPU    */
+/*void BusFault_Handler(void)   { while (1) { } }  /* fallo de bus           */
+/*void UsageFault_Handler(void) { while (1) { } }  /* instruccion invalida   */
+/*void SVC_Handler(void)        { }                /* llamada al supervisor  */
+/*void DebugMon_Handler(void)   { }                /* monitor de depuracion  */
+/*void PendSV_Handler(void)     { }                /* cambio de contexto     */
 
 /*
  * SysTick_Handler

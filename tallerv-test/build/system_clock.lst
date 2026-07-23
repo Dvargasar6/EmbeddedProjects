@@ -1,4 +1,4 @@
-ARM GAS  /tmp/ccHJUZDh.s 			page 1
+ARM GAS  /tmp/ccz9VPey.s 			page 1
 
 
    1              		.cpu cortex-m4
@@ -58,7 +58,7 @@ ARM GAS  /tmp/ccHJUZDh.s 			page 1
   27:Core/Src/system_clock.c **** 
   28:Core/Src/system_clock.c **** /* 1 si el cristal LSE arranco correctamente; 0 si no esta montado o no oscila */
   29:Core/Src/system_clock.c **** static uint8_t   s_lse_ok = 0;
-ARM GAS  /tmp/ccHJUZDh.s 			page 2
+ARM GAS  /tmp/ccz9VPey.s 			page 2
 
 
   30:Core/Src/system_clock.c **** 
@@ -118,7 +118,7 @@ ARM GAS  /tmp/ccHJUZDh.s 			page 1
   84:Core/Src/system_clock.c ****     clk.ClockType      = RCC_CLOCKTYPE_HCLK   | RCC_CLOCKTYPE_SYSCLK |
   85:Core/Src/system_clock.c ****                          RCC_CLOCKTYPE_PCLK1  | RCC_CLOCKTYPE_PCLK2;
   86:Core/Src/system_clock.c ****     clk.SYSCLKSource   = RCC_SYSCLKSOURCE_PLLCLK; /* el PLL alimenta el sistema */
-ARM GAS  /tmp/ccHJUZDh.s 			page 3
+ARM GAS  /tmp/ccz9VPey.s 			page 3
 
 
   87:Core/Src/system_clock.c ****     clk.AHBCLKDivider  = RCC_SYSCLK_DIV1;         /* HCLK  = 100 MHz            */
@@ -178,7 +178,7 @@ ARM GAS  /tmp/ccHJUZDh.s 			page 1
  141:Core/Src/system_clock.c ****  *                                      reduce el slew rate exigido al pin y
  142:Core/Src/system_clock.c ****  *                                      evita el deterioro del flanco que
  143:Core/Src/system_clock.c ****  *                                      presenta la salida directa a 100 MHz)
-ARM GAS  /tmp/ccHJUZDh.s 			page 4
+ARM GAS  /tmp/ccz9VPey.s 			page 4
 
 
  144:Core/Src/system_clock.c ****  *
@@ -238,7 +238,7 @@ ARM GAS  /tmp/ccHJUZDh.s 			page 1
   60 0022 8008     		lsrs	r0, r0, #2
   61              		.loc 1 167 20 discriminator 1 view .LVU8
   62 0024 0F4B     		ldr	r3, .L11+4
-ARM GAS  /tmp/ccHJUZDh.s 			page 5
+ARM GAS  /tmp/ccz9VPey.s 			page 5
 
 
   63 0026 1860     		str	r0, [r3]
@@ -298,7 +298,7 @@ ARM GAS  /tmp/ccHJUZDh.s 			page 1
  161:Core/Src/system_clock.c ****         break;
  103              		.loc 1 161 31 is_stmt 0 view .LVU23
  104 004c 084B     		ldr	r3, .L11+16
-ARM GAS  /tmp/ccHJUZDh.s 			page 6
+ARM GAS  /tmp/ccz9VPey.s 			page 6
 
 
  105 004e 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
@@ -358,7 +358,7 @@ ARM GAS  /tmp/ccHJUZDh.s 			page 1
   39:Core/Src/system_clock.c ****     RCC_ClkInitTypeDef       clk = {0};   /* configuracion de buses       */
  154              		.loc 1 39 30 is_stmt 0 view .LVU31
  155 0004 08AD     		add	r5, sp, #32
-ARM GAS  /tmp/ccHJUZDh.s 			page 7
+ARM GAS  /tmp/ccz9VPey.s 			page 7
 
 
  156 0006 3022     		movs	r2, #48
@@ -418,7 +418,7 @@ ARM GAS  /tmp/ccHJUZDh.s 			page 1
  198 0044 0293     		str	r3, [sp, #8]
   49:Core/Src/system_clock.c **** 
  199              		.loc 1 49 5 view .LVU44
-ARM GAS  /tmp/ccHJUZDh.s 			page 8
+ARM GAS  /tmp/ccz9VPey.s 			page 8
 
 
  200 0046 029B     		ldr	r3, [sp, #8]
@@ -478,7 +478,7 @@ ARM GAS  /tmp/ccHJUZDh.s 			page 1
  235              		.loc 1 74 5 is_stmt 1 view .LVU63
   74:Core/Src/system_clock.c ****                                         No se usa en este proyecto, pero la HAL
  236              		.loc 1 74 29 is_stmt 0 view .LVU64
-ARM GAS  /tmp/ccHJUZDh.s 			page 9
+ARM GAS  /tmp/ccz9VPey.s 			page 9
 
 
  237 0066 0423     		movs	r3, #4
@@ -538,7 +538,7 @@ ARM GAS  /tmp/ccHJUZDh.s 			page 1
  101:Core/Src/system_clock.c ****     HAL_InitTick(TICK_INT_PRIORITY);
  275              		.loc 1 101 5 is_stmt 1 view .LVU81
  276 0090 FFF7FEFF 		bl	SystemCoreClockUpdate
-ARM GAS  /tmp/ccHJUZDh.s 			page 10
+ARM GAS  /tmp/ccz9VPey.s 			page 10
 
 
  277              	.LVL15:
@@ -598,7 +598,7 @@ ARM GAS  /tmp/ccHJUZDh.s 			page 1
  315              		.loc 1 130 1 is_stmt 0 view .LVU97
  316 00bc 15B0     		add	sp, sp, #84
  317              	.LCFI3:
-ARM GAS  /tmp/ccHJUZDh.s 			page 11
+ARM GAS  /tmp/ccz9VPey.s 			page 11
 
 
  318              		.cfi_remember_state
@@ -658,7 +658,7 @@ ARM GAS  /tmp/ccHJUZDh.s 			page 1
  362              		.cfi_endproc
  363              	.LFE268:
  365              		.section	.text.system_clock_mco_get,"ax",%progbits
-ARM GAS  /tmp/ccHJUZDh.s 			page 12
+ARM GAS  /tmp/ccz9VPey.s 			page 12
 
 
  366              		.align	1
@@ -718,7 +718,7 @@ ARM GAS  /tmp/ccHJUZDh.s 			page 1
  406 0038 4D434F31 		.ascii	"MCO1:LSE 32768\000"
  406      3A4C5345 
  406      20333237 
-ARM GAS  /tmp/ccHJUZDh.s 			page 13
+ARM GAS  /tmp/ccz9VPey.s 			page 13
 
 
  406      363800
@@ -778,7 +778,7 @@ ARM GAS  /tmp/ccHJUZDh.s 			page 1
  451 0024 0648     		ldr	r0, .L34+24
  189:Core/Src/system_clock.c ****     }
  190:Core/Src/system_clock.c **** }
-ARM GAS  /tmp/ccHJUZDh.s 			page 14
+ARM GAS  /tmp/ccz9VPey.s 			page 14
 
 
  452              		.loc 1 190 1 view .LVU120
@@ -838,7 +838,7 @@ ARM GAS  /tmp/ccHJUZDh.s 			page 1
  199:Core/Src/system_clock.c **** uint32_t system_clock_mco_freq(void)
  200:Core/Src/system_clock.c **** {
  502              		.loc 1 200 1 is_stmt 1 view -0
-ARM GAS  /tmp/ccHJUZDh.s 			page 15
+ARM GAS  /tmp/ccz9VPey.s 			page 15
 
 
  503              		.cfi_startproc
@@ -882,35 +882,35 @@ ARM GAS  /tmp/ccHJUZDh.s 			page 1
  546              		.file 11 "Core/Inc/main.h"
  547              		.file 12 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr.h"
  548              		.file 13 "<built-in>"
-ARM GAS  /tmp/ccHJUZDh.s 			page 16
+ARM GAS  /tmp/ccz9VPey.s 			page 16
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 system_clock.c
-     /tmp/ccHJUZDh.s:21     .text.system_clock_mco_set:00000000 $t
-     /tmp/ccHJUZDh.s:27     .text.system_clock_mco_set:00000000 system_clock_mco_set
-     /tmp/ccHJUZDh.s:123    .text.system_clock_mco_set:00000060 $d
-     /tmp/ccHJUZDh.s:528    .data.s_mco_freq:00000000 s_mco_freq
-     /tmp/ccHJUZDh.s:533    .data.s_mco_src:00000000 s_mco_src
-     /tmp/ccHJUZDh.s:522    .bss.s_lse_ok:00000000 s_lse_ok
-     /tmp/ccHJUZDh.s:132    .text.system_clock_init:00000000 $t
-     /tmp/ccHJUZDh.s:138    .text.system_clock_init:00000000 system_clock_init
-     /tmp/ccHJUZDh.s:359    .text.system_clock_init:000000e4 $d
-     /tmp/ccHJUZDh.s:366    .text.system_clock_mco_get:00000000 $t
-     /tmp/ccHJUZDh.s:372    .text.system_clock_mco_get:00000000 system_clock_mco_get
-     /tmp/ccHJUZDh.s:387    .text.system_clock_mco_get:00000008 $d
-     /tmp/ccHJUZDh.s:392    .rodata.system_clock_mco_label.str1.4:00000000 $d
-     /tmp/ccHJUZDh.s:408    .text.system_clock_mco_label:00000000 $t
-     /tmp/ccHJUZDh.s:414    .text.system_clock_mco_label:00000000 system_clock_mco_label
-     /tmp/ccHJUZDh.s:457    .text.system_clock_mco_label:00000028 $d
-     /tmp/ccHJUZDh.s:468    .text.system_clock_lse_ok:00000000 $t
-     /tmp/ccHJUZDh.s:474    .text.system_clock_lse_ok:00000000 system_clock_lse_ok
-     /tmp/ccHJUZDh.s:489    .text.system_clock_lse_ok:00000008 $d
-     /tmp/ccHJUZDh.s:494    .text.system_clock_mco_freq:00000000 $t
-     /tmp/ccHJUZDh.s:500    .text.system_clock_mco_freq:00000000 system_clock_mco_freq
-     /tmp/ccHJUZDh.s:515    .text.system_clock_mco_freq:00000008 $d
-     /tmp/ccHJUZDh.s:523    .bss.s_lse_ok:00000000 $d
-     /tmp/ccHJUZDh.s:525    .data.s_mco_freq:00000000 $d
+     /tmp/ccz9VPey.s:21     .text.system_clock_mco_set:00000000 $t
+     /tmp/ccz9VPey.s:27     .text.system_clock_mco_set:00000000 system_clock_mco_set
+     /tmp/ccz9VPey.s:123    .text.system_clock_mco_set:00000060 $d
+     /tmp/ccz9VPey.s:528    .data.s_mco_freq:00000000 s_mco_freq
+     /tmp/ccz9VPey.s:533    .data.s_mco_src:00000000 s_mco_src
+     /tmp/ccz9VPey.s:522    .bss.s_lse_ok:00000000 s_lse_ok
+     /tmp/ccz9VPey.s:132    .text.system_clock_init:00000000 $t
+     /tmp/ccz9VPey.s:138    .text.system_clock_init:00000000 system_clock_init
+     /tmp/ccz9VPey.s:359    .text.system_clock_init:000000e4 $d
+     /tmp/ccz9VPey.s:366    .text.system_clock_mco_get:00000000 $t
+     /tmp/ccz9VPey.s:372    .text.system_clock_mco_get:00000000 system_clock_mco_get
+     /tmp/ccz9VPey.s:387    .text.system_clock_mco_get:00000008 $d
+     /tmp/ccz9VPey.s:392    .rodata.system_clock_mco_label.str1.4:00000000 $d
+     /tmp/ccz9VPey.s:408    .text.system_clock_mco_label:00000000 $t
+     /tmp/ccz9VPey.s:414    .text.system_clock_mco_label:00000000 system_clock_mco_label
+     /tmp/ccz9VPey.s:457    .text.system_clock_mco_label:00000028 $d
+     /tmp/ccz9VPey.s:468    .text.system_clock_lse_ok:00000000 $t
+     /tmp/ccz9VPey.s:474    .text.system_clock_lse_ok:00000000 system_clock_lse_ok
+     /tmp/ccz9VPey.s:489    .text.system_clock_lse_ok:00000008 $d
+     /tmp/ccz9VPey.s:494    .text.system_clock_mco_freq:00000000 $t
+     /tmp/ccz9VPey.s:500    .text.system_clock_mco_freq:00000000 system_clock_mco_freq
+     /tmp/ccz9VPey.s:515    .text.system_clock_mco_freq:00000008 $d
+     /tmp/ccz9VPey.s:523    .bss.s_lse_ok:00000000 $d
+     /tmp/ccz9VPey.s:525    .data.s_mco_freq:00000000 $d
 
 UNDEFINED SYMBOLS
 HAL_RCC_MCOConfig

@@ -1,4 +1,4 @@
-ARM GAS  /tmp/cccQW0ZA.s 			page 1
+ARM GAS  /tmp/ccXERp1L.s 			page 1
 
 
    1              		.cpu cortex-m4
@@ -20,13 +20,13 @@ ARM GAS  /tmp/cccQW0ZA.s 			page 1
   17              	.Ltext0:
   18              		.cfi_sections	.debug_frame
   19              		.file 1 "Core/Src/stm32f4xx_it.c"
-  20              		.section	.text.NMI_Handler,"ax",%progbits
+  20              		.section	.text.SysTick_Handler,"ax",%progbits
   21              		.align	1
-  22              		.global	NMI_Handler
+  22              		.global	SysTick_Handler
   23              		.syntax unified
   24              		.thumb
   25              		.thumb_func
-  27              	NMI_Handler:
+  27              	SysTick_Handler:
   28              	.LFB268:
    1:Core/Src/stm32f4xx_it.c **** /*
    2:Core/Src/stm32f4xx_it.c ****  * stm32f4xx_it.c
@@ -57,619 +57,440 @@ ARM GAS  /tmp/cccQW0ZA.s 			page 1
   27:Core/Src/stm32f4xx_it.c **** 
   28:Core/Src/stm32f4xx_it.c **** /* ================= Excepciones del nucleo Cortex-M4 ==================== */
   29:Core/Src/stm32f4xx_it.c **** 
-  30:Core/Src/stm32f4xx_it.c **** void NMI_Handler(void)        { while (1) { } }  /* no enmascarable        */
-ARM GAS  /tmp/cccQW0ZA.s 			page 2
+  30:Core/Src/stm32f4xx_it.c **** 
+ARM GAS  /tmp/ccXERp1L.s 			page 2
 
 
-  29              		.loc 1 30 31 view -0
+  31:Core/Src/stm32f4xx_it.c **** /*
+  32:Core/Src/stm32f4xx_it.c **** void NMI_Handler(void)        { while (1) { } }  /* no enmascarable        */
+  33:Core/Src/stm32f4xx_it.c **** /*void HardFault_Handler(void)  { while (1) { } }  /* fallo grave            */
+  34:Core/Src/stm32f4xx_it.c **** /*void MemManage_Handler(void)  { while (1) { } }  /* violacion de la MPU    */
+  35:Core/Src/stm32f4xx_it.c **** /*void BusFault_Handler(void)   { while (1) { } }  /* fallo de bus           */
+  36:Core/Src/stm32f4xx_it.c **** /*void UsageFault_Handler(void) { while (1) { } }  /* instruccion invalida   */
+  37:Core/Src/stm32f4xx_it.c **** /*void SVC_Handler(void)        { }                /* llamada al supervisor  */
+  38:Core/Src/stm32f4xx_it.c **** /*void DebugMon_Handler(void)   { }                /* monitor de depuracion  */
+  39:Core/Src/stm32f4xx_it.c **** /*void PendSV_Handler(void)     { }                /* cambio de contexto     */
+  40:Core/Src/stm32f4xx_it.c **** 
+  41:Core/Src/stm32f4xx_it.c **** /*
+  42:Core/Src/stm32f4xx_it.c ****  * SysTick_Handler
+  43:Core/Src/stm32f4xx_it.c ****  * Se dispara cada milisegundo. Incrementa el contador que sostiene
+  44:Core/Src/stm32f4xx_it.c ****  * HAL_GetTick() y HAL_Delay(); sin el, cualquier funcion de la HAL con
+  45:Core/Src/stm32f4xx_it.c ****  * tiempo maximo de espera se bloquearia para siempre.
+  46:Core/Src/stm32f4xx_it.c ****  */
+  47:Core/Src/stm32f4xx_it.c **** void SysTick_Handler(void)
+  48:Core/Src/stm32f4xx_it.c **** {
+  29              		.loc 1 48 1 view -0
   30              		.cfi_startproc
-  31              		@ Volatile: function does not return.
-  32              		@ args = 0, pretend = 0, frame = 0
-  33              		@ frame_needed = 0, uses_anonymous_args = 0
-  34              		@ link register save eliminated.
-  35              	.L2:
-  36              		.loc 1 30 33 view .LVU1
-  37              		.loc 1 30 45 view .LVU2
-  38              		.loc 1 30 39 view .LVU3
-  39 0000 FEE7     		b	.L2
-  40              		.cfi_endproc
-  41              	.LFE268:
-  43              		.section	.text.HardFault_Handler,"ax",%progbits
-  44              		.align	1
-  45              		.global	HardFault_Handler
-  46              		.syntax unified
-  47              		.thumb
-  48              		.thumb_func
-  50              	HardFault_Handler:
-  51              	.LFB269:
-  31:Core/Src/stm32f4xx_it.c **** void HardFault_Handler(void)  { while (1) { } }  /* fallo grave            */
-  52              		.loc 1 31 31 view -0
-  53              		.cfi_startproc
-  54              		@ Volatile: function does not return.
-  55              		@ args = 0, pretend = 0, frame = 0
-  56              		@ frame_needed = 0, uses_anonymous_args = 0
-  57              		@ link register save eliminated.
-  58              	.L4:
-  59              		.loc 1 31 33 view .LVU5
-  60              		.loc 1 31 45 view .LVU6
-  61              		.loc 1 31 39 view .LVU7
-  62 0000 FEE7     		b	.L4
-  63              		.cfi_endproc
-  64              	.LFE269:
-  66              		.section	.text.MemManage_Handler,"ax",%progbits
-  67              		.align	1
-  68              		.global	MemManage_Handler
-  69              		.syntax unified
-  70              		.thumb
-  71              		.thumb_func
-  73              	MemManage_Handler:
-  74              	.LFB270:
-  32:Core/Src/stm32f4xx_it.c **** void MemManage_Handler(void)  { while (1) { } }  /* violacion de la MPU    */
-  75              		.loc 1 32 31 view -0
-  76              		.cfi_startproc
-  77              		@ Volatile: function does not return.
-  78              		@ args = 0, pretend = 0, frame = 0
-  79              		@ frame_needed = 0, uses_anonymous_args = 0
-  80              		@ link register save eliminated.
-  81              	.L6:
-  82              		.loc 1 32 33 view .LVU9
-  83              		.loc 1 32 45 view .LVU10
-  84              		.loc 1 32 39 view .LVU11
-  85 0000 FEE7     		b	.L6
-  86              		.cfi_endproc
-  87              	.LFE270:
-ARM GAS  /tmp/cccQW0ZA.s 			page 3
-
-
-  89              		.section	.text.BusFault_Handler,"ax",%progbits
-  90              		.align	1
-  91              		.global	BusFault_Handler
-  92              		.syntax unified
-  93              		.thumb
-  94              		.thumb_func
-  96              	BusFault_Handler:
-  97              	.LFB271:
-  33:Core/Src/stm32f4xx_it.c **** void BusFault_Handler(void)   { while (1) { } }  /* fallo de bus           */
-  98              		.loc 1 33 31 view -0
-  99              		.cfi_startproc
- 100              		@ Volatile: function does not return.
- 101              		@ args = 0, pretend = 0, frame = 0
- 102              		@ frame_needed = 0, uses_anonymous_args = 0
- 103              		@ link register save eliminated.
- 104              	.L8:
- 105              		.loc 1 33 33 view .LVU13
- 106              		.loc 1 33 45 view .LVU14
- 107              		.loc 1 33 39 view .LVU15
- 108 0000 FEE7     		b	.L8
- 109              		.cfi_endproc
- 110              	.LFE271:
- 112              		.section	.text.UsageFault_Handler,"ax",%progbits
- 113              		.align	1
- 114              		.global	UsageFault_Handler
- 115              		.syntax unified
- 116              		.thumb
- 117              		.thumb_func
- 119              	UsageFault_Handler:
- 120              	.LFB272:
-  34:Core/Src/stm32f4xx_it.c **** void UsageFault_Handler(void) { while (1) { } }  /* instruccion invalida   */
- 121              		.loc 1 34 31 view -0
- 122              		.cfi_startproc
- 123              		@ Volatile: function does not return.
- 124              		@ args = 0, pretend = 0, frame = 0
- 125              		@ frame_needed = 0, uses_anonymous_args = 0
- 126              		@ link register save eliminated.
- 127              	.L10:
- 128              		.loc 1 34 33 view .LVU17
- 129              		.loc 1 34 45 view .LVU18
- 130              		.loc 1 34 39 view .LVU19
- 131 0000 FEE7     		b	.L10
- 132              		.cfi_endproc
- 133              	.LFE272:
- 135              		.section	.text.SVC_Handler,"ax",%progbits
- 136              		.align	1
- 137              		.global	SVC_Handler
- 138              		.syntax unified
- 139              		.thumb
- 140              		.thumb_func
- 142              	SVC_Handler:
- 143              	.LFB273:
-  35:Core/Src/stm32f4xx_it.c **** void SVC_Handler(void)        { }                /* llamada al supervisor  */
- 144              		.loc 1 35 31 view -0
- 145              		.cfi_startproc
- 146              		@ args = 0, pretend = 0, frame = 0
- 147              		@ frame_needed = 0, uses_anonymous_args = 0
-ARM GAS  /tmp/cccQW0ZA.s 			page 4
-
-
- 148              		@ link register save eliminated.
- 149              		.loc 1 35 33 view .LVU21
- 150 0000 7047     		bx	lr
- 151              		.cfi_endproc
- 152              	.LFE273:
- 154              		.section	.text.DebugMon_Handler,"ax",%progbits
- 155              		.align	1
- 156              		.global	DebugMon_Handler
- 157              		.syntax unified
- 158              		.thumb
- 159              		.thumb_func
- 161              	DebugMon_Handler:
- 162              	.LFB274:
-  36:Core/Src/stm32f4xx_it.c **** void DebugMon_Handler(void)   { }                /* monitor de depuracion  */
- 163              		.loc 1 36 31 view -0
- 164              		.cfi_startproc
- 165              		@ args = 0, pretend = 0, frame = 0
- 166              		@ frame_needed = 0, uses_anonymous_args = 0
- 167              		@ link register save eliminated.
- 168              		.loc 1 36 33 view .LVU23
- 169 0000 7047     		bx	lr
- 170              		.cfi_endproc
- 171              	.LFE274:
- 173              		.section	.text.PendSV_Handler,"ax",%progbits
- 174              		.align	1
- 175              		.global	PendSV_Handler
- 176              		.syntax unified
- 177              		.thumb
- 178              		.thumb_func
- 180              	PendSV_Handler:
- 181              	.LFB275:
-  37:Core/Src/stm32f4xx_it.c **** void PendSV_Handler(void)     { }                /* cambio de contexto     */
- 182              		.loc 1 37 31 view -0
- 183              		.cfi_startproc
- 184              		@ args = 0, pretend = 0, frame = 0
- 185              		@ frame_needed = 0, uses_anonymous_args = 0
- 186              		@ link register save eliminated.
- 187              		.loc 1 37 33 view .LVU25
- 188 0000 7047     		bx	lr
- 189              		.cfi_endproc
- 190              	.LFE275:
- 192              		.section	.text.SysTick_Handler,"ax",%progbits
- 193              		.align	1
- 194              		.global	SysTick_Handler
- 195              		.syntax unified
- 196              		.thumb
- 197              		.thumb_func
- 199              	SysTick_Handler:
- 200              	.LFB276:
-  38:Core/Src/stm32f4xx_it.c **** 
-  39:Core/Src/stm32f4xx_it.c **** /*
-  40:Core/Src/stm32f4xx_it.c ****  * SysTick_Handler
-  41:Core/Src/stm32f4xx_it.c ****  * Se dispara cada milisegundo. Incrementa el contador que sostiene
-  42:Core/Src/stm32f4xx_it.c ****  * HAL_GetTick() y HAL_Delay(); sin el, cualquier funcion de la HAL con
-  43:Core/Src/stm32f4xx_it.c ****  * tiempo maximo de espera se bloquearia para siempre.
-  44:Core/Src/stm32f4xx_it.c ****  */
-  45:Core/Src/stm32f4xx_it.c **** void SysTick_Handler(void)
-ARM GAS  /tmp/cccQW0ZA.s 			page 5
-
-
-  46:Core/Src/stm32f4xx_it.c **** {
- 201              		.loc 1 46 1 view -0
- 202              		.cfi_startproc
- 203              		@ args = 0, pretend = 0, frame = 0
- 204              		@ frame_needed = 0, uses_anonymous_args = 0
- 205 0000 08B5     		push	{r3, lr}
- 206              	.LCFI0:
- 207              		.cfi_def_cfa_offset 8
- 208              		.cfi_offset 3, -8
- 209              		.cfi_offset 14, -4
-  47:Core/Src/stm32f4xx_it.c ****     HAL_IncTick();
- 210              		.loc 1 47 5 view .LVU27
- 211 0002 FFF7FEFF 		bl	HAL_IncTick
- 212              	.LVL0:
-  48:Core/Src/stm32f4xx_it.c **** }
- 213              		.loc 1 48 1 is_stmt 0 view .LVU28
- 214 0006 08BD     		pop	{r3, pc}
- 215              		.cfi_endproc
- 216              	.LFE276:
- 218              		.section	.text.USART2_IRQHandler,"ax",%progbits
- 219              		.align	1
- 220              		.global	USART2_IRQHandler
- 221              		.syntax unified
- 222              		.thumb
- 223              		.thumb_func
- 225              	USART2_IRQHandler:
- 226              	.LFB277:
-  49:Core/Src/stm32f4xx_it.c **** 
-  50:Core/Src/stm32f4xx_it.c **** /* ================= Interrupciones de periferico ======================== */
+  31              		@ args = 0, pretend = 0, frame = 0
+  32              		@ frame_needed = 0, uses_anonymous_args = 0
+  33 0000 08B5     		push	{r3, lr}
+  34              	.LCFI0:
+  35              		.cfi_def_cfa_offset 8
+  36              		.cfi_offset 3, -8
+  37              		.cfi_offset 14, -4
+  49:Core/Src/stm32f4xx_it.c ****     HAL_IncTick();
+  38              		.loc 1 49 5 view .LVU1
+  39 0002 FFF7FEFF 		bl	HAL_IncTick
+  40              	.LVL0:
+  50:Core/Src/stm32f4xx_it.c **** }
+  41              		.loc 1 50 1 is_stmt 0 view .LVU2
+  42 0006 08BD     		pop	{r3, pc}
+  43              		.cfi_endproc
+  44              	.LFE268:
+  46              		.section	.text.USART2_IRQHandler,"ax",%progbits
+  47              		.align	1
+  48              		.global	USART2_IRQHandler
+  49              		.syntax unified
+  50              		.thumb
+  51              		.thumb_func
+  53              	USART2_IRQHandler:
+  54              	.LFB269:
   51:Core/Src/stm32f4xx_it.c **** 
-  52:Core/Src/stm32f4xx_it.c **** /*
-  53:Core/Src/stm32f4xx_it.c ****  * USART2_IRQHandler
-  54:Core/Src/stm32f4xx_it.c ****  * Atiende recepcion, transmision y errores. HAL_UART_IRQHandler decide cual
-  55:Core/Src/stm32f4xx_it.c ****  * de los tres casos aplica e invoca HAL_UART_RxCpltCallback,
-  56:Core/Src/stm32f4xx_it.c ****  * HAL_UART_TxCpltCallback o HAL_UART_ErrorCallback, definidos en uart.c.
-  57:Core/Src/stm32f4xx_it.c ****  */
-  58:Core/Src/stm32f4xx_it.c **** void USART2_IRQHandler(void)
-  59:Core/Src/stm32f4xx_it.c **** {
- 227              		.loc 1 59 1 is_stmt 1 view -0
- 228              		.cfi_startproc
- 229              		@ args = 0, pretend = 0, frame = 0
- 230              		@ frame_needed = 0, uses_anonymous_args = 0
- 231 0000 08B5     		push	{r3, lr}
- 232              	.LCFI1:
- 233              		.cfi_def_cfa_offset 8
- 234              		.cfi_offset 3, -8
- 235              		.cfi_offset 14, -4
-  60:Core/Src/stm32f4xx_it.c ****     HAL_UART_IRQHandler(&huart2);
- 236              		.loc 1 60 5 view .LVU30
- 237 0002 0248     		ldr	r0, .L18
- 238 0004 FFF7FEFF 		bl	HAL_UART_IRQHandler
- 239              	.LVL1:
-  61:Core/Src/stm32f4xx_it.c **** }
- 240              		.loc 1 61 1 is_stmt 0 view .LVU31
- 241 0008 08BD     		pop	{r3, pc}
- 242              	.L19:
- 243 000a 00BF     		.align	2
-ARM GAS  /tmp/cccQW0ZA.s 			page 6
+  52:Core/Src/stm32f4xx_it.c **** /* ================= Interrupciones de periferico ======================== */
+  53:Core/Src/stm32f4xx_it.c **** 
+  54:Core/Src/stm32f4xx_it.c **** /*
+  55:Core/Src/stm32f4xx_it.c ****  * USART2_IRQHandler
+  56:Core/Src/stm32f4xx_it.c ****  * Atiende recepcion, transmision y errores. HAL_UART_IRQHandler decide cual
+  57:Core/Src/stm32f4xx_it.c ****  * de los tres casos aplica e invoca HAL_UART_RxCpltCallback,
+  58:Core/Src/stm32f4xx_it.c ****  * HAL_UART_TxCpltCallback o HAL_UART_ErrorCallback, definidos en uart.c.
+  59:Core/Src/stm32f4xx_it.c ****  */
+  60:Core/Src/stm32f4xx_it.c **** void USART2_IRQHandler(void)
+  61:Core/Src/stm32f4xx_it.c **** {
+  55              		.loc 1 61 1 is_stmt 1 view -0
+  56              		.cfi_startproc
+ARM GAS  /tmp/ccXERp1L.s 			page 3
 
 
- 244              	.L18:
- 245 000c 00000000 		.word	huart2
- 246              		.cfi_endproc
- 247              	.LFE277:
- 249              		.section	.text.ADC_IRQHandler,"ax",%progbits
- 250              		.align	1
- 251              		.global	ADC_IRQHandler
- 252              		.syntax unified
- 253              		.thumb
- 254              		.thumb_func
- 256              	ADC_IRQHandler:
- 257              	.LFB278:
-  62:Core/Src/stm32f4xx_it.c **** 
-  63:Core/Src/stm32f4xx_it.c **** /*
-  64:Core/Src/stm32f4xx_it.c ****  * ADC_IRQHandler
-  65:Core/Src/stm32f4xx_it.c ****  * El STM32F411 comparte un unico vector para todos sus ADC.
-  66:Core/Src/stm32f4xx_it.c ****  * Deriva en HAL_ADC_ConvCpltCallback, definido en adc_joystick.c.
-  67:Core/Src/stm32f4xx_it.c ****  */
-  68:Core/Src/stm32f4xx_it.c **** void ADC_IRQHandler(void)
-  69:Core/Src/stm32f4xx_it.c **** {
- 258              		.loc 1 69 1 is_stmt 1 view -0
- 259              		.cfi_startproc
- 260              		@ args = 0, pretend = 0, frame = 0
- 261              		@ frame_needed = 0, uses_anonymous_args = 0
- 262 0000 08B5     		push	{r3, lr}
- 263              	.LCFI2:
- 264              		.cfi_def_cfa_offset 8
- 265              		.cfi_offset 3, -8
- 266              		.cfi_offset 14, -4
-  70:Core/Src/stm32f4xx_it.c ****     HAL_ADC_IRQHandler(&hadc1);
- 267              		.loc 1 70 5 view .LVU33
- 268 0002 0248     		ldr	r0, .L22
- 269 0004 FFF7FEFF 		bl	HAL_ADC_IRQHandler
- 270              	.LVL2:
-  71:Core/Src/stm32f4xx_it.c **** }
- 271              		.loc 1 71 1 is_stmt 0 view .LVU34
- 272 0008 08BD     		pop	{r3, pc}
- 273              	.L23:
- 274 000a 00BF     		.align	2
- 275              	.L22:
- 276 000c 00000000 		.word	hadc1
- 277              		.cfi_endproc
- 278              	.LFE278:
- 280              		.section	.text.TIM3_IRQHandler,"ax",%progbits
- 281              		.align	1
- 282              		.global	TIM3_IRQHandler
- 283              		.syntax unified
- 284              		.thumb
- 285              		.thumb_func
- 287              	TIM3_IRQHandler:
- 288              	.LFB279:
-  72:Core/Src/stm32f4xx_it.c **** 
-  73:Core/Src/stm32f4xx_it.c **** /*
-  74:Core/Src/stm32f4xx_it.c ****  * TIM3_IRQHandler
-  75:Core/Src/stm32f4xx_it.c ****  * Desbordamiento cada 250 ms. Deriva en HAL_TIM_PeriodElapsedCallback,
-  76:Core/Src/stm32f4xx_it.c ****  * que conmuta el LED de PH1.
-  77:Core/Src/stm32f4xx_it.c ****  */
-ARM GAS  /tmp/cccQW0ZA.s 			page 7
+  57              		@ args = 0, pretend = 0, frame = 0
+  58              		@ frame_needed = 0, uses_anonymous_args = 0
+  59 0000 08B5     		push	{r3, lr}
+  60              	.LCFI1:
+  61              		.cfi_def_cfa_offset 8
+  62              		.cfi_offset 3, -8
+  63              		.cfi_offset 14, -4
+  62:Core/Src/stm32f4xx_it.c ****     HAL_UART_IRQHandler(&huart2);
+  64              		.loc 1 62 5 view .LVU4
+  65 0002 0248     		ldr	r0, .L5
+  66 0004 FFF7FEFF 		bl	HAL_UART_IRQHandler
+  67              	.LVL1:
+  63:Core/Src/stm32f4xx_it.c **** }
+  68              		.loc 1 63 1 is_stmt 0 view .LVU5
+  69 0008 08BD     		pop	{r3, pc}
+  70              	.L6:
+  71 000a 00BF     		.align	2
+  72              	.L5:
+  73 000c 00000000 		.word	huart2
+  74              		.cfi_endproc
+  75              	.LFE269:
+  77              		.section	.text.ADC_IRQHandler,"ax",%progbits
+  78              		.align	1
+  79              		.global	ADC_IRQHandler
+  80              		.syntax unified
+  81              		.thumb
+  82              		.thumb_func
+  84              	ADC_IRQHandler:
+  85              	.LFB270:
+  64:Core/Src/stm32f4xx_it.c **** 
+  65:Core/Src/stm32f4xx_it.c **** /*
+  66:Core/Src/stm32f4xx_it.c ****  * ADC_IRQHandler
+  67:Core/Src/stm32f4xx_it.c ****  * El STM32F411 comparte un unico vector para todos sus ADC.
+  68:Core/Src/stm32f4xx_it.c ****  * Deriva en HAL_ADC_ConvCpltCallback, definido en adc_joystick.c.
+  69:Core/Src/stm32f4xx_it.c ****  */
+  70:Core/Src/stm32f4xx_it.c **** void ADC_IRQHandler(void)
+  71:Core/Src/stm32f4xx_it.c **** {
+  86              		.loc 1 71 1 is_stmt 1 view -0
+  87              		.cfi_startproc
+  88              		@ args = 0, pretend = 0, frame = 0
+  89              		@ frame_needed = 0, uses_anonymous_args = 0
+  90 0000 08B5     		push	{r3, lr}
+  91              	.LCFI2:
+  92              		.cfi_def_cfa_offset 8
+  93              		.cfi_offset 3, -8
+  94              		.cfi_offset 14, -4
+  72:Core/Src/stm32f4xx_it.c ****     HAL_ADC_IRQHandler(&hadc1);
+  95              		.loc 1 72 5 view .LVU7
+  96 0002 0248     		ldr	r0, .L9
+  97 0004 FFF7FEFF 		bl	HAL_ADC_IRQHandler
+  98              	.LVL2:
+  73:Core/Src/stm32f4xx_it.c **** }
+  99              		.loc 1 73 1 is_stmt 0 view .LVU8
+ 100 0008 08BD     		pop	{r3, pc}
+ 101              	.L10:
+ 102 000a 00BF     		.align	2
+ 103              	.L9:
+ARM GAS  /tmp/ccXERp1L.s 			page 4
 
 
-  78:Core/Src/stm32f4xx_it.c **** void TIM3_IRQHandler(void)
-  79:Core/Src/stm32f4xx_it.c **** {
- 289              		.loc 1 79 1 is_stmt 1 view -0
- 290              		.cfi_startproc
- 291              		@ args = 0, pretend = 0, frame = 0
- 292              		@ frame_needed = 0, uses_anonymous_args = 0
- 293 0000 08B5     		push	{r3, lr}
- 294              	.LCFI3:
- 295              		.cfi_def_cfa_offset 8
- 296              		.cfi_offset 3, -8
- 297              		.cfi_offset 14, -4
-  80:Core/Src/stm32f4xx_it.c ****     HAL_TIM_IRQHandler(&htim3);
- 298              		.loc 1 80 5 view .LVU36
- 299 0002 0248     		ldr	r0, .L26
- 300 0004 FFF7FEFF 		bl	HAL_TIM_IRQHandler
- 301              	.LVL3:
-  81:Core/Src/stm32f4xx_it.c **** }
- 302              		.loc 1 81 1 is_stmt 0 view .LVU37
- 303 0008 08BD     		pop	{r3, pc}
- 304              	.L27:
- 305 000a 00BF     		.align	2
- 306              	.L26:
- 307 000c 00000000 		.word	htim3
- 308              		.cfi_endproc
- 309              	.LFE279:
- 311              		.section	.text.TIM4_IRQHandler,"ax",%progbits
- 312              		.align	1
- 313              		.global	TIM4_IRQHandler
- 314              		.syntax unified
- 315              		.thumb
- 316              		.thumb_func
- 318              	TIM4_IRQHandler:
- 319              	.LFB280:
-  82:Core/Src/stm32f4xx_it.c **** 
-  83:Core/Src/stm32f4xx_it.c **** /*
-  84:Core/Src/stm32f4xx_it.c ****  * TIM4_IRQHandler
-  85:Core/Src/stm32f4xx_it.c ****  * Desbordamiento cada 100 ms. Lanza la conversion del ADC y encola el
-  86:Core/Src/stm32f4xx_it.c ****  * evento periodico de la maquina de estados.
-  87:Core/Src/stm32f4xx_it.c ****  */
-  88:Core/Src/stm32f4xx_it.c **** void TIM4_IRQHandler(void)
-  89:Core/Src/stm32f4xx_it.c **** {
- 320              		.loc 1 89 1 is_stmt 1 view -0
- 321              		.cfi_startproc
- 322              		@ args = 0, pretend = 0, frame = 0
- 323              		@ frame_needed = 0, uses_anonymous_args = 0
- 324 0000 08B5     		push	{r3, lr}
- 325              	.LCFI4:
- 326              		.cfi_def_cfa_offset 8
- 327              		.cfi_offset 3, -8
- 328              		.cfi_offset 14, -4
-  90:Core/Src/stm32f4xx_it.c ****     HAL_TIM_IRQHandler(&htim4);
- 329              		.loc 1 90 5 view .LVU39
- 330 0002 0248     		ldr	r0, .L30
- 331 0004 FFF7FEFF 		bl	HAL_TIM_IRQHandler
- 332              	.LVL4:
-  91:Core/Src/stm32f4xx_it.c **** }
- 333              		.loc 1 91 1 is_stmt 0 view .LVU40
-ARM GAS  /tmp/cccQW0ZA.s 			page 8
+ 104 000c 00000000 		.word	hadc1
+ 105              		.cfi_endproc
+ 106              	.LFE270:
+ 108              		.section	.text.TIM3_IRQHandler,"ax",%progbits
+ 109              		.align	1
+ 110              		.global	TIM3_IRQHandler
+ 111              		.syntax unified
+ 112              		.thumb
+ 113              		.thumb_func
+ 115              	TIM3_IRQHandler:
+ 116              	.LFB271:
+  74:Core/Src/stm32f4xx_it.c **** 
+  75:Core/Src/stm32f4xx_it.c **** /*
+  76:Core/Src/stm32f4xx_it.c ****  * TIM3_IRQHandler
+  77:Core/Src/stm32f4xx_it.c ****  * Desbordamiento cada 250 ms. Deriva en HAL_TIM_PeriodElapsedCallback,
+  78:Core/Src/stm32f4xx_it.c ****  * que conmuta el LED de PH1.
+  79:Core/Src/stm32f4xx_it.c ****  */
+  80:Core/Src/stm32f4xx_it.c **** void TIM3_IRQHandler(void)
+  81:Core/Src/stm32f4xx_it.c **** {
+ 117              		.loc 1 81 1 is_stmt 1 view -0
+ 118              		.cfi_startproc
+ 119              		@ args = 0, pretend = 0, frame = 0
+ 120              		@ frame_needed = 0, uses_anonymous_args = 0
+ 121 0000 08B5     		push	{r3, lr}
+ 122              	.LCFI3:
+ 123              		.cfi_def_cfa_offset 8
+ 124              		.cfi_offset 3, -8
+ 125              		.cfi_offset 14, -4
+  82:Core/Src/stm32f4xx_it.c ****     HAL_TIM_IRQHandler(&htim3);
+ 126              		.loc 1 82 5 view .LVU10
+ 127 0002 0248     		ldr	r0, .L13
+ 128 0004 FFF7FEFF 		bl	HAL_TIM_IRQHandler
+ 129              	.LVL3:
+  83:Core/Src/stm32f4xx_it.c **** }
+ 130              		.loc 1 83 1 is_stmt 0 view .LVU11
+ 131 0008 08BD     		pop	{r3, pc}
+ 132              	.L14:
+ 133 000a 00BF     		.align	2
+ 134              	.L13:
+ 135 000c 00000000 		.word	htim3
+ 136              		.cfi_endproc
+ 137              	.LFE271:
+ 139              		.section	.text.TIM4_IRQHandler,"ax",%progbits
+ 140              		.align	1
+ 141              		.global	TIM4_IRQHandler
+ 142              		.syntax unified
+ 143              		.thumb
+ 144              		.thumb_func
+ 146              	TIM4_IRQHandler:
+ 147              	.LFB272:
+  84:Core/Src/stm32f4xx_it.c **** 
+  85:Core/Src/stm32f4xx_it.c **** /*
+  86:Core/Src/stm32f4xx_it.c ****  * TIM4_IRQHandler
+  87:Core/Src/stm32f4xx_it.c ****  * Desbordamiento cada 100 ms. Lanza la conversion del ADC y encola el
+  88:Core/Src/stm32f4xx_it.c ****  * evento periodico de la maquina de estados.
+  89:Core/Src/stm32f4xx_it.c ****  */
+  90:Core/Src/stm32f4xx_it.c **** void TIM4_IRQHandler(void)
+ARM GAS  /tmp/ccXERp1L.s 			page 5
 
 
- 334 0008 08BD     		pop	{r3, pc}
- 335              	.L31:
- 336 000a 00BF     		.align	2
- 337              	.L30:
- 338 000c 00000000 		.word	htim4
- 339              		.cfi_endproc
- 340              	.LFE280:
- 342              		.section	.text.EXTI9_5_IRQHandler,"ax",%progbits
- 343              		.align	1
- 344              		.global	EXTI9_5_IRQHandler
- 345              		.syntax unified
- 346              		.thumb
- 347              		.thumb_func
- 349              	EXTI9_5_IRQHandler:
- 350              	.LFB281:
-  92:Core/Src/stm32f4xx_it.c **** 
-  93:Core/Src/stm32f4xx_it.c **** /*
-  94:Core/Src/stm32f4xx_it.c ****  * EXTI9_5_IRQHandler
-  95:Core/Src/stm32f4xx_it.c ****  * Vector compartido por las lineas EXTI 5 a 9. HAL_GPIO_EXTI_IRQHandler
-  96:Core/Src/stm32f4xx_it.c ****  * comprueba cual de ellas esta pendiente, limpia la bandera e invoca
-  97:Core/Src/stm32f4xx_it.c ****  * HAL_GPIO_EXTI_Callback.
-  98:Core/Src/stm32f4xx_it.c ****  */
-  99:Core/Src/stm32f4xx_it.c **** void EXTI9_5_IRQHandler(void)
- 100:Core/Src/stm32f4xx_it.c **** {
- 351              		.loc 1 100 1 is_stmt 1 view -0
- 352              		.cfi_startproc
- 353              		@ args = 0, pretend = 0, frame = 0
- 354              		@ frame_needed = 0, uses_anonymous_args = 0
- 355 0000 08B5     		push	{r3, lr}
- 356              	.LCFI5:
- 357              		.cfi_def_cfa_offset 8
- 358              		.cfi_offset 3, -8
- 359              		.cfi_offset 14, -4
- 101:Core/Src/stm32f4xx_it.c ****     HAL_GPIO_EXTI_IRQHandler(JOY_SW_PIN);
- 360              		.loc 1 101 5 view .LVU42
- 361 0002 2020     		movs	r0, #32
- 362 0004 FFF7FEFF 		bl	HAL_GPIO_EXTI_IRQHandler
- 363              	.LVL5:
- 102:Core/Src/stm32f4xx_it.c **** }
- 364              		.loc 1 102 1 is_stmt 0 view .LVU43
- 365 0008 08BD     		pop	{r3, pc}
- 366              		.cfi_endproc
- 367              	.LFE281:
- 369              		.section	.text.RTC_WKUP_IRQHandler,"ax",%progbits
- 370              		.align	1
- 371              		.global	RTC_WKUP_IRQHandler
- 372              		.syntax unified
- 373              		.thumb
- 374              		.thumb_func
- 376              	RTC_WKUP_IRQHandler:
- 377              	.LFB282:
- 103:Core/Src/stm32f4xx_it.c **** 
- 104:Core/Src/stm32f4xx_it.c **** /*
- 105:Core/Src/stm32f4xx_it.c ****  * RTC_WKUP_IRQHandler
- 106:Core/Src/stm32f4xx_it.c ****  * Despertador periodico de 1 s. Deriva en
- 107:Core/Src/stm32f4xx_it.c ****  * HAL_RTCEx_WakeUpTimerEventCallback, definido en rtc.c.
- 108:Core/Src/stm32f4xx_it.c ****  */
-ARM GAS  /tmp/cccQW0ZA.s 			page 9
+  91:Core/Src/stm32f4xx_it.c **** {
+ 148              		.loc 1 91 1 is_stmt 1 view -0
+ 149              		.cfi_startproc
+ 150              		@ args = 0, pretend = 0, frame = 0
+ 151              		@ frame_needed = 0, uses_anonymous_args = 0
+ 152 0000 08B5     		push	{r3, lr}
+ 153              	.LCFI4:
+ 154              		.cfi_def_cfa_offset 8
+ 155              		.cfi_offset 3, -8
+ 156              		.cfi_offset 14, -4
+  92:Core/Src/stm32f4xx_it.c ****     HAL_TIM_IRQHandler(&htim4);
+ 157              		.loc 1 92 5 view .LVU13
+ 158 0002 0248     		ldr	r0, .L17
+ 159 0004 FFF7FEFF 		bl	HAL_TIM_IRQHandler
+ 160              	.LVL4:
+  93:Core/Src/stm32f4xx_it.c **** }
+ 161              		.loc 1 93 1 is_stmt 0 view .LVU14
+ 162 0008 08BD     		pop	{r3, pc}
+ 163              	.L18:
+ 164 000a 00BF     		.align	2
+ 165              	.L17:
+ 166 000c 00000000 		.word	htim4
+ 167              		.cfi_endproc
+ 168              	.LFE272:
+ 170              		.section	.text.EXTI9_5_IRQHandler,"ax",%progbits
+ 171              		.align	1
+ 172              		.global	EXTI9_5_IRQHandler
+ 173              		.syntax unified
+ 174              		.thumb
+ 175              		.thumb_func
+ 177              	EXTI9_5_IRQHandler:
+ 178              	.LFB273:
+  94:Core/Src/stm32f4xx_it.c **** 
+  95:Core/Src/stm32f4xx_it.c **** /*
+  96:Core/Src/stm32f4xx_it.c ****  * EXTI9_5_IRQHandler
+  97:Core/Src/stm32f4xx_it.c ****  * Vector compartido por las lineas EXTI 5 a 9. HAL_GPIO_EXTI_IRQHandler
+  98:Core/Src/stm32f4xx_it.c ****  * comprueba cual de ellas esta pendiente, limpia la bandera e invoca
+  99:Core/Src/stm32f4xx_it.c ****  * HAL_GPIO_EXTI_Callback.
+ 100:Core/Src/stm32f4xx_it.c ****  */
+ 101:Core/Src/stm32f4xx_it.c **** void EXTI9_5_IRQHandler(void)
+ 102:Core/Src/stm32f4xx_it.c **** {
+ 179              		.loc 1 102 1 is_stmt 1 view -0
+ 180              		.cfi_startproc
+ 181              		@ args = 0, pretend = 0, frame = 0
+ 182              		@ frame_needed = 0, uses_anonymous_args = 0
+ 183 0000 08B5     		push	{r3, lr}
+ 184              	.LCFI5:
+ 185              		.cfi_def_cfa_offset 8
+ 186              		.cfi_offset 3, -8
+ 187              		.cfi_offset 14, -4
+ 103:Core/Src/stm32f4xx_it.c ****     HAL_GPIO_EXTI_IRQHandler(JOY_SW_PIN);
+ 188              		.loc 1 103 5 view .LVU16
+ 189 0002 2020     		movs	r0, #32
+ 190 0004 FFF7FEFF 		bl	HAL_GPIO_EXTI_IRQHandler
+ 191              	.LVL5:
+ 104:Core/Src/stm32f4xx_it.c **** }
+ 192              		.loc 1 104 1 is_stmt 0 view .LVU17
+ARM GAS  /tmp/ccXERp1L.s 			page 6
 
 
- 109:Core/Src/stm32f4xx_it.c **** void RTC_WKUP_IRQHandler(void)
- 110:Core/Src/stm32f4xx_it.c **** {
- 378              		.loc 1 110 1 is_stmt 1 view -0
- 379              		.cfi_startproc
- 380              		@ args = 0, pretend = 0, frame = 0
- 381              		@ frame_needed = 0, uses_anonymous_args = 0
- 382 0000 08B5     		push	{r3, lr}
- 383              	.LCFI6:
- 384              		.cfi_def_cfa_offset 8
- 385              		.cfi_offset 3, -8
- 386              		.cfi_offset 14, -4
- 111:Core/Src/stm32f4xx_it.c ****     HAL_RTCEx_WakeUpTimerIRQHandler(&hrtc);
- 387              		.loc 1 111 5 view .LVU45
- 388 0002 0248     		ldr	r0, .L36
- 389 0004 FFF7FEFF 		bl	HAL_RTCEx_WakeUpTimerIRQHandler
- 390              	.LVL6:
- 112:Core/Src/stm32f4xx_it.c **** }
- 391              		.loc 1 112 1 is_stmt 0 view .LVU46
- 392 0008 08BD     		pop	{r3, pc}
- 393              	.L37:
- 394 000a 00BF     		.align	2
- 395              	.L36:
- 396 000c 00000000 		.word	hrtc
- 397              		.cfi_endproc
- 398              	.LFE282:
- 400              		.section	.text.HAL_GPIO_EXTI_Callback,"ax",%progbits
- 401              		.align	1
- 402              		.global	HAL_GPIO_EXTI_Callback
- 403              		.syntax unified
- 404              		.thumb
- 405              		.thumb_func
- 407              	HAL_GPIO_EXTI_Callback:
- 408              	.LVL7:
- 409              	.LFB283:
- 113:Core/Src/stm32f4xx_it.c **** 
- 114:Core/Src/stm32f4xx_it.c **** /*
- 115:Core/Src/stm32f4xx_it.c ****  * HAL_GPIO_EXTI_Callback
- 116:Core/Src/stm32f4xx_it.c ****  * Callback comun a todas las lineas EXTI. Incorpora el antirrebote por
- 117:Core/Src/stm32f4xx_it.c ****  * software: los contactos mecanicos del pulsador generan decenas de flancos
- 118:Core/Src/stm32f4xx_it.c ****  * espurios durante algunos milisegundos, por lo que se ignora todo flanco
- 119:Core/Src/stm32f4xx_it.c ****  * que llegue antes de 200 ms desde el anterior.
- 120:Core/Src/stm32f4xx_it.c ****  */
- 121:Core/Src/stm32f4xx_it.c **** void HAL_GPIO_EXTI_Callback(uint16_t pin)
- 122:Core/Src/stm32f4xx_it.c **** {
- 410              		.loc 1 122 1 is_stmt 1 view -0
- 411              		.cfi_startproc
- 412              		@ args = 0, pretend = 0, frame = 0
- 413              		@ frame_needed = 0, uses_anonymous_args = 0
- 414              		.loc 1 122 1 is_stmt 0 view .LVU48
- 415 0000 10B5     		push	{r4, lr}
- 416              	.LCFI7:
- 417              		.cfi_def_cfa_offset 8
- 418              		.cfi_offset 4, -8
- 419              		.cfi_offset 14, -4
- 420 0002 0446     		mov	r4, r0
- 123:Core/Src/stm32f4xx_it.c ****     static uint32_t last = 0;    /* marca temporal del ultimo flanco valido */
- 421              		.loc 1 123 5 is_stmt 1 view .LVU49
-ARM GAS  /tmp/cccQW0ZA.s 			page 10
+ 193 0008 08BD     		pop	{r3, pc}
+ 194              		.cfi_endproc
+ 195              	.LFE273:
+ 197              		.section	.text.RTC_WKUP_IRQHandler,"ax",%progbits
+ 198              		.align	1
+ 199              		.global	RTC_WKUP_IRQHandler
+ 200              		.syntax unified
+ 201              		.thumb
+ 202              		.thumb_func
+ 204              	RTC_WKUP_IRQHandler:
+ 205              	.LFB274:
+ 105:Core/Src/stm32f4xx_it.c **** 
+ 106:Core/Src/stm32f4xx_it.c **** /*
+ 107:Core/Src/stm32f4xx_it.c ****  * RTC_WKUP_IRQHandler
+ 108:Core/Src/stm32f4xx_it.c ****  * Despertador periodico de 1 s. Deriva en
+ 109:Core/Src/stm32f4xx_it.c ****  * HAL_RTCEx_WakeUpTimerEventCallback, definido en rtc.c.
+ 110:Core/Src/stm32f4xx_it.c ****  */
+ 111:Core/Src/stm32f4xx_it.c **** void RTC_WKUP_IRQHandler(void)
+ 112:Core/Src/stm32f4xx_it.c **** {
+ 206              		.loc 1 112 1 is_stmt 1 view -0
+ 207              		.cfi_startproc
+ 208              		@ args = 0, pretend = 0, frame = 0
+ 209              		@ frame_needed = 0, uses_anonymous_args = 0
+ 210 0000 08B5     		push	{r3, lr}
+ 211              	.LCFI6:
+ 212              		.cfi_def_cfa_offset 8
+ 213              		.cfi_offset 3, -8
+ 214              		.cfi_offset 14, -4
+ 113:Core/Src/stm32f4xx_it.c ****     HAL_RTCEx_WakeUpTimerIRQHandler(&hrtc);
+ 215              		.loc 1 113 5 view .LVU19
+ 216 0002 0248     		ldr	r0, .L23
+ 217 0004 FFF7FEFF 		bl	HAL_RTCEx_WakeUpTimerIRQHandler
+ 218              	.LVL6:
+ 114:Core/Src/stm32f4xx_it.c **** }
+ 219              		.loc 1 114 1 is_stmt 0 view .LVU20
+ 220 0008 08BD     		pop	{r3, pc}
+ 221              	.L24:
+ 222 000a 00BF     		.align	2
+ 223              	.L23:
+ 224 000c 00000000 		.word	hrtc
+ 225              		.cfi_endproc
+ 226              	.LFE274:
+ 228              		.section	.text.HAL_GPIO_EXTI_Callback,"ax",%progbits
+ 229              		.align	1
+ 230              		.global	HAL_GPIO_EXTI_Callback
+ 231              		.syntax unified
+ 232              		.thumb
+ 233              		.thumb_func
+ 235              	HAL_GPIO_EXTI_Callback:
+ 236              	.LVL7:
+ 237              	.LFB275:
+ 115:Core/Src/stm32f4xx_it.c **** 
+ 116:Core/Src/stm32f4xx_it.c **** /*
+ 117:Core/Src/stm32f4xx_it.c ****  * HAL_GPIO_EXTI_Callback
+ 118:Core/Src/stm32f4xx_it.c ****  * Callback comun a todas las lineas EXTI. Incorpora el antirrebote por
+ 119:Core/Src/stm32f4xx_it.c ****  * software: los contactos mecanicos del pulsador generan decenas de flancos
+ 120:Core/Src/stm32f4xx_it.c ****  * espurios durante algunos milisegundos, por lo que se ignora todo flanco
+ARM GAS  /tmp/ccXERp1L.s 			page 7
 
 
- 124:Core/Src/stm32f4xx_it.c ****     uint32_t now = HAL_GetTick();
- 422              		.loc 1 124 5 view .LVU50
- 423              		.loc 1 124 20 is_stmt 0 view .LVU51
- 424 0004 FFF7FEFF 		bl	HAL_GetTick
- 425              	.LVL8:
- 125:Core/Src/stm32f4xx_it.c **** 
- 126:Core/Src/stm32f4xx_it.c ****     if (pin != JOY_SW_PIN) {
- 426              		.loc 1 126 5 is_stmt 1 view .LVU52
- 427              		.loc 1 126 8 is_stmt 0 view .LVU53
- 428 0008 202C     		cmp	r4, #32
- 429 000a 04D1     		bne	.L38
- 127:Core/Src/stm32f4xx_it.c ****         return;
- 128:Core/Src/stm32f4xx_it.c ****     }
- 129:Core/Src/stm32f4xx_it.c ****     if ((now - last) < 200U) {
- 430              		.loc 1 129 5 is_stmt 1 view .LVU54
- 431              		.loc 1 129 14 is_stmt 0 view .LVU55
- 432 000c 054B     		ldr	r3, .L42
- 433 000e 1B68     		ldr	r3, [r3]
- 434 0010 C31A     		subs	r3, r0, r3
- 435              		.loc 1 129 8 view .LVU56
- 436 0012 C72B     		cmp	r3, #199
- 437 0014 00D8     		bhi	.L41
- 438              	.LVL9:
- 439              	.L38:
- 130:Core/Src/stm32f4xx_it.c ****         return;                  /* rebote: se descarta */
- 131:Core/Src/stm32f4xx_it.c ****     }
- 132:Core/Src/stm32f4xx_it.c ****     last = now;
- 133:Core/Src/stm32f4xx_it.c **** 
- 134:Core/Src/stm32f4xx_it.c ****     fsm_post_event(EV_BUTTON);
- 135:Core/Src/stm32f4xx_it.c **** }
- 440              		.loc 1 135 1 view .LVU57
- 441 0016 10BD     		pop	{r4, pc}
- 442              	.LVL10:
- 443              	.L41:
- 132:Core/Src/stm32f4xx_it.c **** 
- 444              		.loc 1 132 5 is_stmt 1 view .LVU58
- 132:Core/Src/stm32f4xx_it.c **** 
- 445              		.loc 1 132 10 is_stmt 0 view .LVU59
- 446 0018 024B     		ldr	r3, .L42
- 447 001a 1860     		str	r0, [r3]
- 134:Core/Src/stm32f4xx_it.c **** }
- 448              		.loc 1 134 5 is_stmt 1 view .LVU60
- 449 001c 0C20     		movs	r0, #12
- 450              	.LVL11:
- 134:Core/Src/stm32f4xx_it.c **** }
- 451              		.loc 1 134 5 is_stmt 0 view .LVU61
- 452 001e FFF7FEFF 		bl	fsm_post_event
- 453              	.LVL12:
- 134:Core/Src/stm32f4xx_it.c **** }
- 454              		.loc 1 134 5 view .LVU62
- 455 0022 F8E7     		b	.L38
- 456              	.L43:
- 457              		.align	2
- 458              	.L42:
- 459 0024 00000000 		.word	last.0
- 460              		.cfi_endproc
- 461              	.LFE283:
-ARM GAS  /tmp/cccQW0ZA.s 			page 11
+ 121:Core/Src/stm32f4xx_it.c ****  * que llegue antes de 200 ms desde el anterior.
+ 122:Core/Src/stm32f4xx_it.c ****  */
+ 123:Core/Src/stm32f4xx_it.c **** void HAL_GPIO_EXTI_Callback(uint16_t pin)
+ 124:Core/Src/stm32f4xx_it.c **** {
+ 238              		.loc 1 124 1 is_stmt 1 view -0
+ 239              		.cfi_startproc
+ 240              		@ args = 0, pretend = 0, frame = 0
+ 241              		@ frame_needed = 0, uses_anonymous_args = 0
+ 242              		.loc 1 124 1 is_stmt 0 view .LVU22
+ 243 0000 10B5     		push	{r4, lr}
+ 244              	.LCFI7:
+ 245              		.cfi_def_cfa_offset 8
+ 246              		.cfi_offset 4, -8
+ 247              		.cfi_offset 14, -4
+ 248 0002 0446     		mov	r4, r0
+ 125:Core/Src/stm32f4xx_it.c ****     static uint32_t last = 0;    /* marca temporal del ultimo flanco valido */
+ 249              		.loc 1 125 5 is_stmt 1 view .LVU23
+ 126:Core/Src/stm32f4xx_it.c ****     uint32_t now = HAL_GetTick();
+ 250              		.loc 1 126 5 view .LVU24
+ 251              		.loc 1 126 20 is_stmt 0 view .LVU25
+ 252 0004 FFF7FEFF 		bl	HAL_GetTick
+ 253              	.LVL8:
+ 127:Core/Src/stm32f4xx_it.c **** 
+ 128:Core/Src/stm32f4xx_it.c ****     if (pin != JOY_SW_PIN) {
+ 254              		.loc 1 128 5 is_stmt 1 view .LVU26
+ 255              		.loc 1 128 8 is_stmt 0 view .LVU27
+ 256 0008 202C     		cmp	r4, #32
+ 257 000a 04D1     		bne	.L25
+ 129:Core/Src/stm32f4xx_it.c ****         return;
+ 130:Core/Src/stm32f4xx_it.c ****     }
+ 131:Core/Src/stm32f4xx_it.c ****     if ((now - last) < 200U) {
+ 258              		.loc 1 131 5 is_stmt 1 view .LVU28
+ 259              		.loc 1 131 14 is_stmt 0 view .LVU29
+ 260 000c 054B     		ldr	r3, .L29
+ 261 000e 1B68     		ldr	r3, [r3]
+ 262 0010 C31A     		subs	r3, r0, r3
+ 263              		.loc 1 131 8 view .LVU30
+ 264 0012 C72B     		cmp	r3, #199
+ 265 0014 00D8     		bhi	.L28
+ 266              	.LVL9:
+ 267              	.L25:
+ 132:Core/Src/stm32f4xx_it.c ****         return;                  /* rebote: se descarta */
+ 133:Core/Src/stm32f4xx_it.c ****     }
+ 134:Core/Src/stm32f4xx_it.c ****     last = now;
+ 135:Core/Src/stm32f4xx_it.c **** 
+ 136:Core/Src/stm32f4xx_it.c ****     fsm_post_event(EV_BUTTON);
+ 137:Core/Src/stm32f4xx_it.c **** }
+ 268              		.loc 1 137 1 view .LVU31
+ 269 0016 10BD     		pop	{r4, pc}
+ 270              	.LVL10:
+ 271              	.L28:
+ 134:Core/Src/stm32f4xx_it.c **** 
+ 272              		.loc 1 134 5 is_stmt 1 view .LVU32
+ 134:Core/Src/stm32f4xx_it.c **** 
+ 273              		.loc 1 134 10 is_stmt 0 view .LVU33
+ 274 0018 024B     		ldr	r3, .L29
+ 275 001a 1860     		str	r0, [r3]
+ARM GAS  /tmp/ccXERp1L.s 			page 8
 
 
- 463              		.section	.bss.last.0,"aw",%nobits
- 464              		.align	2
- 467              	last.0:
- 468 0000 00000000 		.space	4
- 469              		.text
- 470              	.Letext0:
- 471              		.file 2 "/usr/arm-none-eabi/include/machine/_default_types.h"
- 472              		.file 3 "/usr/arm-none-eabi/include/sys/_stdint.h"
- 473              		.file 4 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h"
- 474              		.file 5 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h"
- 475              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
- 476              		.file 7 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h"
- 477              		.file 8 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_adc.h"
- 478              		.file 9 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rtc.h"
- 479              		.file 10 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h"
- 480              		.file 11 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h"
- 481              		.file 12 "Core/Inc/timer.h"
- 482              		.file 13 "Core/Inc/uart.h"
- 483              		.file 14 "Core/Inc/adc_joystick.h"
- 484              		.file 15 "Core/Inc/rtc.h"
- 485              		.file 16 "Core/Inc/fsm.h"
- 486              		.file 17 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rtc_ex.h"
- 487              		.file 18 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_gpio.h"
- 488              		.file 19 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h"
-ARM GAS  /tmp/cccQW0ZA.s 			page 12
+ 136:Core/Src/stm32f4xx_it.c **** }
+ 276              		.loc 1 136 5 is_stmt 1 view .LVU34
+ 277 001c 0C20     		movs	r0, #12
+ 278              	.LVL11:
+ 136:Core/Src/stm32f4xx_it.c **** }
+ 279              		.loc 1 136 5 is_stmt 0 view .LVU35
+ 280 001e FFF7FEFF 		bl	fsm_post_event
+ 281              	.LVL12:
+ 136:Core/Src/stm32f4xx_it.c **** }
+ 282              		.loc 1 136 5 view .LVU36
+ 283 0022 F8E7     		b	.L25
+ 284              	.L30:
+ 285              		.align	2
+ 286              	.L29:
+ 287 0024 00000000 		.word	last.0
+ 288              		.cfi_endproc
+ 289              	.LFE275:
+ 291              		.section	.bss.last.0,"aw",%nobits
+ 292              		.align	2
+ 295              	last.0:
+ 296 0000 00000000 		.space	4
+ 297              		.text
+ 298              	.Letext0:
+ 299              		.file 2 "/usr/arm-none-eabi/include/machine/_default_types.h"
+ 300              		.file 3 "/usr/arm-none-eabi/include/sys/_stdint.h"
+ 301              		.file 4 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f411xe.h"
+ 302              		.file 5 "Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h"
+ 303              		.file 6 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_def.h"
+ 304              		.file 7 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_dma.h"
+ 305              		.file 8 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_adc.h"
+ 306              		.file 9 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rtc.h"
+ 307              		.file 10 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h"
+ 308              		.file 11 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_uart.h"
+ 309              		.file 12 "Core/Inc/timer.h"
+ 310              		.file 13 "Core/Inc/uart.h"
+ 311              		.file 14 "Core/Inc/adc_joystick.h"
+ 312              		.file 15 "Core/Inc/rtc.h"
+ 313              		.file 16 "Core/Inc/fsm.h"
+ 314              		.file 17 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rtc_ex.h"
+ 315              		.file 18 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_gpio.h"
+ 316              		.file 19 "Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal.h"
+ARM GAS  /tmp/ccXERp1L.s 			page 9
 
 
 DEFINED SYMBOLS
                             *ABS*:00000000 stm32f4xx_it.c
-     /tmp/cccQW0ZA.s:21     .text.NMI_Handler:00000000 $t
-     /tmp/cccQW0ZA.s:27     .text.NMI_Handler:00000000 NMI_Handler
-     /tmp/cccQW0ZA.s:44     .text.HardFault_Handler:00000000 $t
-     /tmp/cccQW0ZA.s:50     .text.HardFault_Handler:00000000 HardFault_Handler
-     /tmp/cccQW0ZA.s:67     .text.MemManage_Handler:00000000 $t
-     /tmp/cccQW0ZA.s:73     .text.MemManage_Handler:00000000 MemManage_Handler
-     /tmp/cccQW0ZA.s:90     .text.BusFault_Handler:00000000 $t
-     /tmp/cccQW0ZA.s:96     .text.BusFault_Handler:00000000 BusFault_Handler
-     /tmp/cccQW0ZA.s:113    .text.UsageFault_Handler:00000000 $t
-     /tmp/cccQW0ZA.s:119    .text.UsageFault_Handler:00000000 UsageFault_Handler
-     /tmp/cccQW0ZA.s:136    .text.SVC_Handler:00000000 $t
-     /tmp/cccQW0ZA.s:142    .text.SVC_Handler:00000000 SVC_Handler
-     /tmp/cccQW0ZA.s:155    .text.DebugMon_Handler:00000000 $t
-     /tmp/cccQW0ZA.s:161    .text.DebugMon_Handler:00000000 DebugMon_Handler
-     /tmp/cccQW0ZA.s:174    .text.PendSV_Handler:00000000 $t
-     /tmp/cccQW0ZA.s:180    .text.PendSV_Handler:00000000 PendSV_Handler
-     /tmp/cccQW0ZA.s:193    .text.SysTick_Handler:00000000 $t
-     /tmp/cccQW0ZA.s:199    .text.SysTick_Handler:00000000 SysTick_Handler
-     /tmp/cccQW0ZA.s:219    .text.USART2_IRQHandler:00000000 $t
-     /tmp/cccQW0ZA.s:225    .text.USART2_IRQHandler:00000000 USART2_IRQHandler
-     /tmp/cccQW0ZA.s:245    .text.USART2_IRQHandler:0000000c $d
-     /tmp/cccQW0ZA.s:250    .text.ADC_IRQHandler:00000000 $t
-     /tmp/cccQW0ZA.s:256    .text.ADC_IRQHandler:00000000 ADC_IRQHandler
-     /tmp/cccQW0ZA.s:276    .text.ADC_IRQHandler:0000000c $d
-     /tmp/cccQW0ZA.s:281    .text.TIM3_IRQHandler:00000000 $t
-     /tmp/cccQW0ZA.s:287    .text.TIM3_IRQHandler:00000000 TIM3_IRQHandler
-     /tmp/cccQW0ZA.s:307    .text.TIM3_IRQHandler:0000000c $d
-     /tmp/cccQW0ZA.s:312    .text.TIM4_IRQHandler:00000000 $t
-     /tmp/cccQW0ZA.s:318    .text.TIM4_IRQHandler:00000000 TIM4_IRQHandler
-     /tmp/cccQW0ZA.s:338    .text.TIM4_IRQHandler:0000000c $d
-     /tmp/cccQW0ZA.s:343    .text.EXTI9_5_IRQHandler:00000000 $t
-     /tmp/cccQW0ZA.s:349    .text.EXTI9_5_IRQHandler:00000000 EXTI9_5_IRQHandler
-     /tmp/cccQW0ZA.s:370    .text.RTC_WKUP_IRQHandler:00000000 $t
-     /tmp/cccQW0ZA.s:376    .text.RTC_WKUP_IRQHandler:00000000 RTC_WKUP_IRQHandler
-     /tmp/cccQW0ZA.s:396    .text.RTC_WKUP_IRQHandler:0000000c $d
-     /tmp/cccQW0ZA.s:401    .text.HAL_GPIO_EXTI_Callback:00000000 $t
-     /tmp/cccQW0ZA.s:407    .text.HAL_GPIO_EXTI_Callback:00000000 HAL_GPIO_EXTI_Callback
-     /tmp/cccQW0ZA.s:459    .text.HAL_GPIO_EXTI_Callback:00000024 $d
-     /tmp/cccQW0ZA.s:467    .bss.last.0:00000000 last.0
-     /tmp/cccQW0ZA.s:464    .bss.last.0:00000000 $d
+     /tmp/ccXERp1L.s:21     .text.SysTick_Handler:00000000 $t
+     /tmp/ccXERp1L.s:27     .text.SysTick_Handler:00000000 SysTick_Handler
+     /tmp/ccXERp1L.s:47     .text.USART2_IRQHandler:00000000 $t
+     /tmp/ccXERp1L.s:53     .text.USART2_IRQHandler:00000000 USART2_IRQHandler
+     /tmp/ccXERp1L.s:73     .text.USART2_IRQHandler:0000000c $d
+     /tmp/ccXERp1L.s:78     .text.ADC_IRQHandler:00000000 $t
+     /tmp/ccXERp1L.s:84     .text.ADC_IRQHandler:00000000 ADC_IRQHandler
+     /tmp/ccXERp1L.s:104    .text.ADC_IRQHandler:0000000c $d
+     /tmp/ccXERp1L.s:109    .text.TIM3_IRQHandler:00000000 $t
+     /tmp/ccXERp1L.s:115    .text.TIM3_IRQHandler:00000000 TIM3_IRQHandler
+     /tmp/ccXERp1L.s:135    .text.TIM3_IRQHandler:0000000c $d
+     /tmp/ccXERp1L.s:140    .text.TIM4_IRQHandler:00000000 $t
+     /tmp/ccXERp1L.s:146    .text.TIM4_IRQHandler:00000000 TIM4_IRQHandler
+     /tmp/ccXERp1L.s:166    .text.TIM4_IRQHandler:0000000c $d
+     /tmp/ccXERp1L.s:171    .text.EXTI9_5_IRQHandler:00000000 $t
+     /tmp/ccXERp1L.s:177    .text.EXTI9_5_IRQHandler:00000000 EXTI9_5_IRQHandler
+     /tmp/ccXERp1L.s:198    .text.RTC_WKUP_IRQHandler:00000000 $t
+     /tmp/ccXERp1L.s:204    .text.RTC_WKUP_IRQHandler:00000000 RTC_WKUP_IRQHandler
+     /tmp/ccXERp1L.s:224    .text.RTC_WKUP_IRQHandler:0000000c $d
+     /tmp/ccXERp1L.s:229    .text.HAL_GPIO_EXTI_Callback:00000000 $t
+     /tmp/ccXERp1L.s:235    .text.HAL_GPIO_EXTI_Callback:00000000 HAL_GPIO_EXTI_Callback
+     /tmp/ccXERp1L.s:287    .text.HAL_GPIO_EXTI_Callback:00000024 $d
+     /tmp/ccXERp1L.s:295    .bss.last.0:00000000 last.0
+     /tmp/ccXERp1L.s:292    .bss.last.0:00000000 $d
 
 UNDEFINED SYMBOLS
 HAL_IncTick
@@ -685,6 +506,3 @@ HAL_RTCEx_WakeUpTimerIRQHandler
 hrtc
 HAL_GetTick
 fsm_post_event
-ARM GAS  /tmp/cccQW0ZA.s 			page 13
-
-

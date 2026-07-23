@@ -201,6 +201,7 @@ void        fsm_run(void);
 fsm_state_t fsm_get_state(void);
 
 /* --- rutinas de servicio de interrupcion (nombres fijados por el startup) - */
+/*
 void NMI_Handler(void);
 void HardFault_Handler(void);
 void MemManage_Handler(void);
@@ -209,6 +210,7 @@ void UsageFault_Handler(void);
 void SVC_Handler(void);
 void DebugMon_Handler(void);
 void PendSV_Handler(void);
+*/
 void SysTick_Handler(void);
 void USART2_IRQHandler(void);
 void ADC_IRQHandler(void);
